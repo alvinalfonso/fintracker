@@ -31,6 +31,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
+    <!-- GOOGLE ADSENSE SCRIPT -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7502471894485955"
+     crossorigin="anonymous"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 8px; }
@@ -46,6 +50,20 @@
         
         .cycle-active { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); } 
         .cycle-next { border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.05); }
+        
+        /* Ad Container Styling */
+        .ad-container {
+            width: 100%;
+            min-height: 90px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
@@ -95,6 +113,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ADSENSE BANNER SLOT -->
+            <div class="ad-container flex">
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%; height:90px;"
+                     data-ad-client="ca-pub-7502471894485955"
+                     data-ad-slot="9784525673"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <span class="text-xs text-gray-600 absolute pointer-events-none">Advertisement</span>
             </div>
 
             <!-- Totals -->
@@ -296,14 +325,48 @@
     </div>
 
     <!-- Login -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex items-center justify-center z-50 hidden">
-        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl">
+    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex flex-col items-center justify-center z-50 hidden overflow-y-auto py-10">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8">
             <div class="w-16 h-16 bg-brand-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-500"><i class="fa-solid fa-wallet text-3xl"></i></div>
             <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
             <button id="btn-google-login" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group mt-8">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
                 <span>Continue with Google</span>
             </button>
+        </div>
+
+        <!-- CONTENT FOR ADSENSE APPROVAL (Visible on Login) -->
+        <div class="max-w-4xl w-full mx-4 text-gray-400 space-y-8">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-white mb-2">Master Your Paycheck Cycles</h2>
+                <p class="text-sm max-w-xl mx-auto">FinTrack isn't just a budget app; it's a paycheck-to-paycheck management system designed to give you clarity on exactly what bills need to be paid before your next salary arrives.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-xl border border-gray-800">
+                    <div class="text-brand-500 text-2xl mb-3"><i class="fa-solid fa-rotate"></i></div>
+                    <h3 class="font-bold text-white mb-2">Smart Cycles</h3>
+                    <p class="text-xs">Automatically splits your monthly bills into pay periods (e.g., 15th & 30th) so you know exactly how much cash you have left right now.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-xl border border-gray-800">
+                    <div class="text-green-500 text-2xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3 class="font-bold text-white mb-2">Future Forecasting</h3>
+                    <p class="text-xs">Projects your cash flow up to 3 months in advance based on your recurring bills and expected salary, preventing overdraft surprises.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-xl border border-gray-800">
+                    <div class="text-purple-500 text-2xl mb-3"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h3 class="font-bold text-white mb-2">Debt & Arrears</h3>
+                    <p class="text-xs">Missed a payment? FinTrack automatically carries over unpaid amounts to the next cycle as 'Arrears' so you never forget a debt.</p>
+                </div>
+            </div>
+            
+            <div class="text-center text-xs text-gray-600 pt-8">
+                <p>&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
+                <div class="flex justify-center gap-4 mt-2">
+                    <a href="#" class="hover:text-gray-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-400">Terms of Service</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -510,6 +573,7 @@
         let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
         let unsubscribers = [];
         let spendChart = null;
+        let adsLoaded = false; // Flag to prevent double-loading ads
 
         const initAuth = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -520,6 +584,18 @@
                 if(u) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
+                    
+                    // --- ADSENSE FIX: Trigger ads only AFTER container is visible ---
+                    if (!adsLoaded) {
+                        try {
+                            (window.adsbygoogle = window.adsbygoogle || []).push({});
+                            adsLoaded = true;
+                        } catch (e) {
+                            console.error("AdSense Init Error:", e);
+                        }
+                    }
+                    // ----------------------------------------------------------------
+
                     initDataListeners(u.uid);
                     document.getElementById('auth-section').innerHTML = `<button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400">Sign Out</button>`;
                 } else {
@@ -846,228 +922,6 @@
             res.push({ id: bill.id, name: bill.name, amount: remaining, totalRequired: bill.amount, date: dateStr, isPaid: remaining<=0.1, arrears: 0, counter: 'Single Payment' });
             } } }
             return res;
-        }
-
-        // 2. RECEIVABLES (NEW)
-        window.renderReceivables = function() {
-            const el = document.getElementById('receivables-list');
-            if(!state.receivables.length) { el.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8 border border-dashed border-gray-800 rounded-xl">No receivables.</div>`; return; }
-            
-            // Sort: Pending first, then by date
-            const list = [...state.receivables].sort((a,b) => (a.isReceived === b.isReceived) ? new Date(a.date) - new Date(b.date) : (a.isReceived ? 1 : -1));
-
-            el.innerHTML = list.map(r => {
-                const isPaid = r.isReceived;
-                return `
-                <div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col justify-between ${isPaid ? 'opacity-50' : ''}">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="font-bold text-white text-md ${isPaid?'line-through':''}">${r.name}</h4>
-                            <p class="text-xs text-gray-400">Exp: ${formatDateShort(r.date)}</p>
-                        </div>
-                        <button onclick="deleteReceivable('${r.id}')" class="text-xs text-gray-600 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <div class="mt-2 flex items-center justify-between">
-                         <span class="text-xl font-bold ${isPaid ? 'text-gray-500' : 'text-green-400'}">${formatCurrency(r.amount)}</span>
-                         ${!isPaid ? `<button onclick="triggerTransaction('income', '${r.id}', '${r.date}', ${r.amount}, 'Received: ${r.name}', false, '', 0, '', 'receivable')" class="bg-green-900/30 text-green-400 hover:bg-green-900/50 border border-green-900 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Mark Received</button>` : 
-                         `<span class="text-green-600 text-xs font-bold border border-green-900/30 px-2 py-1 rounded">RECEIVED</span>`}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        window.openReceivableModal = () => {
-            document.getElementById('recv-id').value = '';
-            document.getElementById('recv-name').value = '';
-            document.getElementById('recv-amount').value = '';
-            document.getElementById('recv-date').value = toLocalISOString(new Date());
-            openModal('modal-receivable');
-        }
-        window.saveReceivable = async () => {
-            const id = document.getElementById('recv-id').value;
-            const d = { 
-                name: document.getElementById('recv-name').value, 
-                amount: parseFloat(document.getElementById('recv-amount').value)||0, 
-                date: document.getElementById('recv-date').value,
-                isReceived: false
-            };
-            if(!d.name || !d.amount) return;
-            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables');
-            if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d);
-            closeModal('modal-receivable');
-        }
-        window.deleteReceivable = async (id) => { if(confirm("Delete this receivable?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables', id)); }
-
-
-        // 3. GOALS
-        window.renderGoals = function() {
-            const el = document.getElementById('goals-list');
-            if(!state.goals.length) { el.innerHTML = `<div class="col-span-2 text-center text-gray-500 py-8">No goals set.</div>`; return; }
-            el.innerHTML = state.goals.map(g => {
-                const pct = Math.min(100, Math.round((g.current/g.target)*100));
-                return `
-                <div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
-                    <div class="flex justify-between items-start mb-4">
-                        <h4 class="font-bold text-white text-lg">${g.name}</h4>
-                        <button onclick="openGoalModal('${g.id}')" class="text-xs text-gray-500 hover:text-white"><i class="fa-solid fa-pen"></i></button>
-                    </div>
-                    <div class="mb-2 flex justify-between text-xs text-gray-400"><span>${formatCurrency(g.current)}</span><span>${formatCurrency(g.target)}</span></div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 mb-4"><div class="bg-green-500 h-2.5 rounded-full" style="width: ${pct}%"></div></div>
-                    <div class="flex gap-2">
-                        <button onclick="updateGoalAmt('${g.id}', ${g.current}, 500)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded text-xs font-bold text-green-400">+ ₱500</button>
-                        <button onclick="updateGoalAmt('${g.id}', ${g.current}, 1000)" class="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded text-xs font-bold text-green-400">+ ₱1k</button>
-                        <button onclick="deleteGoal('${g.id}')" class="px-3 bg-gray-800 hover:bg-red-900/50 text-red-400 rounded"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        window.openGoalModal = (id) => {
-            const g = id ? state.goals.find(x => x.id === id) : null;
-            document.getElementById('goal-id').value = id || '';
-            document.getElementById('goal-name').value = g ? g.name : '';
-            document.getElementById('goal-target').value = g ? g.target : '';
-            document.getElementById('goal-current').value = g ? g.current : '0';
-            document.getElementById('goal-modal-title').innerText = id ? 'Edit Goal' : 'New Goal';
-            openModal('modal-goal');
-        }
-        window.saveGoal = async () => {
-            const id = document.getElementById('goal-id').value;
-            const d = { name: document.getElementById('goal-name').value, target: parseFloat(document.getElementById('goal-target').value)||0, current: parseFloat(document.getElementById('goal-current').value)||0 };
-            if(!d.name) return;
-            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'goals');
-            if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d);
-            closeModal('modal-goal');
-        }
-        window.updateGoalAmt = async (id, curr, add) => { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id), { current: curr + add }, {merge:true}); }
-        window.deleteGoal = async (id) => { if(confirm("Delete goal?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id)); }
-
-        // 4. BILLS
-        window.renderBills = function() {
-            const listEl = document.getElementById('bills-list');
-            if(!state.bills.length) { listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills.</div>`; return; }
-            const today = new Date();
-            const cycles = getPayoutCycles(today); 
-            const search = document.getElementById('bills-search').value.toLowerCase();
-            const filter = document.getElementById('bills-filter').value;
-            const sort = document.getElementById('bills-sort').value;
-            let displayBills = state.bills.filter(b => {
-                if (isBillCompleted(b)) return false; 
-                const matchesSearch = b.name.toLowerCase().includes(search);
-                const matchesFilter = filter === 'all' || b.frequency === filter;
-                return matchesSearch && matchesFilter;
-            });
-            
-            displayBills.sort((a, b) => {
-                if (sort === 'name') return a.name.localeCompare(b.name);
-                if (sort === 'amount-desc') return b.amount - a.amount;
-                if (sort === 'due-date') {
-                    const getNext = (bill) => {
-                        let occs = getBillOccurrencesInCycle(bill, cycles.active);
-                        if (!occs.length) occs = getBillOccurrencesInCycle(bill, cycles.next);
-                        if (occs.length > 0) { occs.sort((x, y) => new Date(x.date) - new Date(y.date)); return new Date(occs[0].date); }
-                        return new Date(9999, 11, 31); 
-                    }; return getNext(a) - getNext(b);
-                }
-                return 0;
-            });
-            if(displayBills.length === 0) { listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills match filters.</div>`; return; }
-
-            listEl.innerHTML = displayBills.map(bill => {
-                const arrears = bill.arrears || 0; const total = bill.amount + arrears;
-                const occurrences = getBillOccurrencesInCycle(bill, cycles.active);
-                let activeOccs = occurrences.length ? occurrences : getBillOccurrencesInCycle(bill, cycles.next);
-                activeOccs.sort((a,b) => new Date(a.date) - new Date(b.date));
-                let counterStr = activeOccs.length ? activeOccs[0].counter : '';
-                let actions = activeOccs.map(occ => {
-                    if(occ.isPaid) return `<button class="w-full py-2 bg-green-900/20 text-green-400 border border-green-900/50 rounded-lg text-xs font-bold mb-2 cursor-default"><i class="fa-solid fa-check"></i> Paid ${formatDateShort(occ.date)}</button>`;
-                    return `<div class="flex gap-1 mb-2"><button onclick="triggerTransaction('bill', '${bill.id}', '${occ.date}', ${occ.amount}, '${bill.name}', false, '', ${bill.arrears}, '${occ.date}')" class="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium">Pay ${formatCurrency(occ.amount)} <span class="text-[10px] opacity-75">(${formatDateShort(occ.date)})</span></button><button onclick="carryOverBill('${bill.id}', ${bill.amount})" title="Defer" class="w-10 bg-gray-800 text-orange-400 border border-gray-700 rounded-lg"><i class="fa-solid fa-forward"></i></button></div>`;
-                }).join('');
-                return `<div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col relative"><div class="flex justify-between items-start mb-4"><div><h4 class="font-bold text-white text-lg">${bill.name}</h4><div class="flex items-center gap-2 mt-1 text-xs text-gray-400"><span class="bg-gray-800 px-2 py-0.5 rounded uppercase">${bill.frequency}</span>${arrears > 0 ? `<span class="bg-red-900/30 text-red-400 px-2 py-0.5 rounded border border-red-900/50">Arrears: ${formatCurrency(arrears)}</span>` : ''}</div></div><div class="text-right"><p class="text-xl font-bold text-gray-200">${formatCurrency(total)}</p><button onclick="editBill('${bill.id}')" class="mt-1 text-xs text-brand-500 hover:text-brand-400">Edit</button></div></div>${actions}${counterStr ? `<div class="mt-auto pt-3 border-t border-gray-800 text-[10px] text-gray-500 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> ${counterStr}</div>` : ''}</div>`;
-            }).join('');
-        }
-
-        window.renderForecast = function() {
-            const container = document.getElementById('forecast-container');
-            container.innerHTML = '';
-            let pointer = new Date(); const activeStart = getPayoutCycles(pointer).active.start; pointer = activeStart;
-            let tempCycles = [];
-            for(let i=0; i<6; i++) { const cycles = getPayoutCycles(pointer); if(!tempCycles.some(c => c.start.getTime() === cycles.active.start.getTime())) tempCycles.push(cycles.active); pointer = new Date(cycles.active.end); pointer.setDate(pointer.getDate() + 2); }
-            
-            tempCycles.forEach(cycle => {
-                const payoutDateStr = formatDate(cycle.start); 
-                let items = []; 
-                state.bills.forEach(b => { if(!isBillCompleted(b)) items.push(...getBillOccurrencesInCycle(b, cycle)); }); 
-                items.sort((a,b) => new Date(a.date) - new Date(b.date));
-                
-                const incData = getCycleIncome(cycle);
-                const totalOut = items.reduce((s,i) => s + i.amount, 0); 
-                const income = incData.amount; 
-                const net = income - totalOut;
-                
-                const incomeClass = incData.isActual ? "text-green-400 font-bold" : "text-gray-400";
-                let incomeLabel = incData.isActual ? "Actual Income" : "Est. Income";
-                if(incData.extra > 0) incomeLabel += ` (+${formatCurrency(incData.extra)})`;
-
-                container.innerHTML += `<div class="glass-panel rounded-2xl border border-gray-800 flex flex-col h-full relative overflow-hidden"><div class="p-4 border-b border-gray-800 bg-gray-900/50"><div class="flex justify-between items-center mb-1"><h4 class="font-bold text-white text-sm">Payout: ${payoutDateStr}</h4><span class="text-xs ${net>=0?'text-green-400':'text-red-400'}">${formatCurrency(net)}</span></div><div class="flex justify-between text-[10px] text-gray-500"><span>Range: ${formatDateShort(cycle.start)} - ${formatDateShort(cycle.end)}</span></div></div><div class="flex-1 overflow-y-auto p-4 space-y-2"><div class="flex justify-between text-xs mb-2 pb-2 border-b border-gray-800"><span class="${incomeClass}">${incomeLabel}</span><span class="${incomeClass}">${formatCurrency(income)}</span></div>${items.map(item => `<div class="flex items-center justify-between p-2 rounded ${item.isPaid ? 'opacity-30' : 'bg-gray-800/40'} text-xs"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-red-500"></div><div class="flex flex-col"><span class="truncate w-24">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div></div><div class="text-right"><div class="text-gray-300">${formatCurrency(item.amount)}</div><div class="text-[9px] text-gray-600">${formatDateShort(item.date)}</div></div></div>`).join('')}</div></div>`;
-            });
-        }
-
-        window.triggerTransaction = function(type, refId, date, amt, title, isPaid, ledgerId, arrears, targetDate, originType) {
-            if(isPaid) return;
-            document.getElementById('trans-modal-title').innerText = type==='income'?'Income':'Pay Bill';
-            document.getElementById('trans-modal-desc').innerText = title;
-            document.getElementById('trans-type').value = type;
-            document.getElementById('trans-ref-id').value = refId;
-            document.getElementById('trans-date').value = date;
-            document.getElementById('trans-origin-type').value = originType || '';
-            document.getElementById('trans-target-date').value = targetDate || date;
-            document.getElementById('trans-target-display').value = targetDate || date;
-            document.getElementById('trans-amount').value = amt;
-            document.getElementById('trans-expected-amt').value = amt;
-            document.getElementById('trans-arrears-amt').value = arrears||0;
-            openModal('modal-transaction');
-        }
-
-        window.confirmTransaction = async function() {
-            const type = document.getElementById('trans-type').value;
-            const refId = document.getElementById('trans-ref-id').value;
-            const originType = document.getElementById('trans-origin-type').value;
-            const paidAmount = parseFloat(document.getElementById('trans-amount').value);
-            const expectedAmount = parseFloat(document.getElementById('trans-expected-amt').value);
-            const date = document.getElementById('trans-date').value;
-            const targetDateStr = document.getElementById('trans-target-date').value;
-            if(!paidAmount || !date) return;
-
-            try {
-                let description = document.getElementById('trans-modal-desc').innerText.replace('Confirming: ', '');
-                if (type === 'bill' && paidAmount < expectedAmount) {
-                    description += ` (Partial)`;
-                    const diff = expectedAmount - paidAmount;
-                    if (date > targetDateStr) { 
-                        if(confirm(`Due date (${targetDateStr}) has passed.\nPayment Date: ${date}\nRemaining balance: ${formatCurrency(diff)}.\n\nDefer to Arrears?`)) {
-                            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: diff }, { merge: true });
-                        }
-                    }
-                } else if (type === 'bill' && paidAmount >= expectedAmount) {
-                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: 0 }, { merge: true });
-                }
-                
-                // Handle Receivable status update
-                if(type === 'income' && originType === 'receivable') {
-                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables', refId), { isReceived: true }, { merge: true });
-                }
-
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger'), {
-                    type, amount: paidAmount, date, targetDate: targetDateStr, refId, description, isPaid: true, category: type==='bill'?'Bill':'Income', createdAt: new Date().toISOString()
-                });
-                closeModal('modal-transaction');
-            } catch(e) { console.error(e); alert('Error saving'); }
-        }
-
-        window.carryOverBill = async function(id, baseAmt) {
-            if(!confirm("Defer payment?")) return;
-            const b = state.bills.find(x => x.id === id);
-            const newArr = (b.arrears||0) + baseAmt;
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', id), { arrears: newArr }, { merge: true });
         }
 
         window.exportStatement = (type) => {

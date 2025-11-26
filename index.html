@@ -564,7 +564,8 @@
         };
 
         const app = initializeApp(config);
-        const analytics = getAnalytics(app);
+        let analytics;
+        try { analytics = getAnalytics(app); } catch(e) { console.warn("Analytics failed:", e); }
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'fintrack-prod';
@@ -573,7 +574,7 @@
         let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
         let unsubscribers = [];
         let spendChart = null;
-        let adsLoaded = false; // Flag to prevent double-loading ads
+        let adsLoaded = false;
 
         const initAuth = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -585,16 +586,9 @@
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     
-                    // --- ADSENSE FIX: Trigger ads only AFTER container is visible ---
                     if (!adsLoaded) {
-                        try {
-                            (window.adsbygoogle = window.adsbygoogle || []).push({});
-                            adsLoaded = true;
-                        } catch (e) {
-                            console.error("AdSense Init Error:", e);
-                        }
+                        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); adsLoaded = true; } catch (e) {}
                     }
-                    // ----------------------------------------------------------------
 
                     initDataListeners(u.uid);
                     document.getElementById('auth-section').innerHTML = `<button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400">Sign Out</button>`;
@@ -615,28 +609,48 @@
         function initDataListeners(uid) {
             document.getElementById('loading-screen').classList.remove('hidden');
             const path = (c) => collection(db, 'artifacts', appId, 'users', uid, c);
+            
+            // Generic Error Handler & Loading Screen Dismissal
+            const handleErr = (context, e) => {
+                console.error(`${context} Error:`, e);
+                if(e.code === 'permission-denied' || e.code === 'unavailable') {
+                    alert(`Connection Error (${context}): ${e.message}\nCheck your network or firewall.`);
+                }
+                document.getElementById('loading-screen').classList.add('hidden'); 
+            };
+
             unsubscribers.push(onSnapshot(path('settings'), s => {
                 if(!s.empty) state.settings = { ...state.settings, ...s.docs[0].data(), id: s.docs[0].id };
                 refreshUI();
-            }));
+            }, e => handleErr('Settings', e)));
+
             unsubscribers.push(onSnapshot(path('bills'), s => {
                 state.bills = s.docs.map(d => ({id: d.id, ...d.data()}));
                 refreshUI();
-            }));
+            }, e => handleErr('Bills', e)));
+
             unsubscribers.push(onSnapshot(path('goals'), s => {
                 state.goals = s.docs.map(d => ({id: d.id, ...d.data()}));
                 refreshUI();
-            }));
+            }, e => handleErr('Goals', e)));
+
             unsubscribers.push(onSnapshot(path('receivables'), s => {
                 state.receivables = s.docs.map(d => ({id: d.id, ...d.data()}));
                 refreshUI();
-            }));
+            }, e => handleErr('Receivables', e)));
+
+            // Ledger is key - it handles auto deferrals
             unsubscribers.push(onSnapshot(path('ledger'), s => {
                 state.ledger = s.docs.map(d => ({id: d.id, ...d.data()}));
                 checkAutoDeferrals();
                 refreshUI();
+                document.getElementById('loading-screen').classList.add('hidden'); // Success case
+            }, e => handleErr('Ledger', e))); // Error case
+
+            // Failsafe timeout: Force remove loading screen after 8 seconds if DB hangs
+            setTimeout(() => {
                 document.getElementById('loading-screen').classList.add('hidden');
-            }));
+            }, 8000);
         }
 
         async function checkAutoDeferrals() {

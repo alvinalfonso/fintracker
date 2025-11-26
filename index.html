@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FinTrack is a smart finance dashboard designed for paycheck budgeting, bill tracking, and financial forecasting.">
     <title>FinTrack - Smart Finance Dashboard</title>
     
     <!-- Tailwind CSS -->
@@ -97,7 +98,14 @@
 
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section space-y-6 animate-fade-in">
-            
+            <!-- Content Value Add -->
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
+                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-circle-info text-brand-500 mr-2"></i>Financial Snapshot</h2>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    This dashboard provides a real-time overview of your current financial health. The <strong>Active Cycle</strong> card highlights obligations that must be settled before your next payout, while the <strong>Upcoming Cycle</strong> card helps you plan ahead. Use the export feature to generate financial statements for record-keeping.
+                </p>
+            </div>
+
             <!-- Export Header -->
             <div class="flex justify-end mb-4">
                 <div class="relative inline-block text-left group">
@@ -239,6 +247,14 @@
 
         <!-- RECEIVABLES VIEW (NEW) -->
         <div id="view-receivables" class="view-section hidden space-y-6">
+            <!-- Content Value Add -->
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
+                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-hand-holding-dollar text-green-500 mr-2"></i>Incoming Funds Management</h2>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Track expected income from various sources such as freelancing, lending, or refunds. These "Receivables" are automatically integrated into your cycle income calculations, giving you a more accurate picture of your available spending power. Mark items as "Received" to move them to your Ledger.
+                </p>
+            </div>
+
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="space-y-1">
                     <h2 class="text-2xl font-bold">Receivables</h2>
@@ -255,6 +271,14 @@
 
         <!-- GOALS VIEW -->
         <div id="view-goals" class="view-section hidden space-y-6">
+            <!-- Content Value Add -->
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
+                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-bullseye text-brand-500 mr-2"></i>Sinking Funds & Targets</h2>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Setting financial goals is crucial for long-term stability. Use this section to track "Sinking Funds"—savings for specific future expenses like holidays, emergency funds, or large purchases. Allocate a portion of your surplus income from each cycle to reach your targets faster.
+                </p>
+            </div>
+
             <div class="flex justify-between items-center">
                 <div class="space-y-1">
                     <h2 class="text-2xl font-bold">Savings Goals</h2>
@@ -269,6 +293,14 @@
 
         <!-- BILLS VIEW -->
         <div id="view-bills" class="view-section hidden space-y-6">
+            <!-- Content Value Add -->
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
+                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Recurring Obligations</h2>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Manage your fixed monthly or semi-monthly expenses here. FinTrack uses these details to automatically populate your Dashboard cycles. Ensure your due dates are accurate to prevent missed payments. Bills can be filtered by frequency and sorted by amount or urgency.
+                </p>
+            </div>
+
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                <div class="space-y-1">
                     <h2 class="text-2xl font-bold">Recurring Bills</h2>
@@ -301,6 +333,14 @@
 
         <!-- FORECAST VIEW -->
         <div id="view-forecast" class="view-section hidden space-y-6">
+            <!-- Content Value Add -->
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
+                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-crystal-ball text-indigo-500 mr-2"></i>Future Cash Flow Projection</h2>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    The Forecast view projects your financial status up to 3 months (6 cycles) into the future. It takes your base salary, adds any expected receivables, and subtracts known recurring bills for that specific period. This allows you to identify potential cash flow gaps before they happen.
+                </p>
+            </div>
+
             <div class="glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-800">
                 <div class="flex items-center gap-3">
                     <div class="p-3 bg-gray-800 rounded-lg text-brand-400"><i class="fa-solid fa-sliders"></i></div>
@@ -325,8 +365,8 @@
     </div>
 
     <!-- Login -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex flex-col items-center justify-center z-50 hidden overflow-y-auto py-10">
-        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8">
+    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex flex-col items-center justify-start z-50 hidden overflow-y-auto pt-10 pb-10">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8 flex-shrink-0">
             <div class="w-16 h-16 bg-brand-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-500"><i class="fa-solid fa-wallet text-3xl"></i></div>
             <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
             <button id="btn-google-login" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group mt-8">
@@ -336,36 +376,83 @@
         </div>
 
         <!-- CONTENT FOR ADSENSE APPROVAL (Visible on Login) -->
-        <div class="max-w-4xl w-full mx-4 text-gray-400 space-y-8">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-white mb-2">Master Your Paycheck Cycles</h2>
-                <p class="text-sm max-w-xl mx-auto">FinTrack isn't just a budget app; it's a paycheck-to-paycheck management system designed to give you clarity on exactly what bills need to be paid before your next salary arrives.</p>
+        <div class="max-w-5xl w-full mx-4 text-gray-400 space-y-12 pb-12">
+            
+            <!-- Intro Section -->
+            <div class="text-center space-y-4">
+                <h2 class="text-3xl font-bold text-white">Master Your Paycheck Cycles</h2>
+                <p class="text-sm max-w-2xl mx-auto leading-relaxed">
+                    FinTrack is a personal finance tool built on the philosophy of "Cycle Budgeting". Unlike traditional monthly budgets, FinTrack aligns with your actual payout dates (e.g., the 15th and 30th), giving you clarity on exactly which bills need to be covered by which paycheck.
+                </p>
             </div>
             
+            <!-- Features Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="glass-panel p-6 rounded-xl border border-gray-800">
                     <div class="text-brand-500 text-2xl mb-3"><i class="fa-solid fa-rotate"></i></div>
-                    <h3 class="font-bold text-white mb-2">Smart Cycles</h3>
-                    <p class="text-xs">Automatically splits your monthly bills into pay periods (e.g., 15th & 30th) so you know exactly how much cash you have left right now.</p>
+                    <h3 class="font-bold text-white mb-2">Smart Cycle Logic</h3>
+                    <p class="text-xs leading-relaxed">Automatically splits your monthly bills into custom pay periods. If today is the 10th and your next pay is the 15th, FinTrack shows you only the bills due in that 5-day window, preventing premature spending.</p>
                 </div>
                 <div class="glass-panel p-6 rounded-xl border border-gray-800">
                     <div class="text-green-500 text-2xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
                     <h3 class="font-bold text-white mb-2">Future Forecasting</h3>
-                    <p class="text-xs">Projects your cash flow up to 3 months in advance based on your recurring bills and expected salary, preventing overdraft surprises.</p>
+                    <p class="text-xs leading-relaxed">Projects your cash flow up to 3 months in advance. By analyzing your recurring bills and expected salary, the Forecast engine identifies potential cash flow gaps before they happen.</p>
                 </div>
                 <div class="glass-panel p-6 rounded-xl border border-gray-800">
                     <div class="text-purple-500 text-2xl mb-3"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <h3 class="font-bold text-white mb-2">Debt & Arrears</h3>
-                    <p class="text-xs">Missed a payment? FinTrack automatically carries over unpaid amounts to the next cycle as 'Arrears' so you never forget a debt.</p>
+                    <h3 class="font-bold text-white mb-2">Debt & Arrears Tracker</h3>
+                    <p class="text-xs leading-relaxed">Missed a payment? FinTrack automatically carries over unpaid amounts to the next cycle as 'Arrears'. This ensures debts are never forgotten and are prioritized in your next payout.</p>
+                </div>
+            </div>
+
+            <!-- How It Works Section (New Content) -->
+            <div class="border-t border-gray-800 pt-10">
+                <h3 class="text-2xl font-bold text-white mb-6 text-center">How FinTrack Works</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-white mb-2">1. Set Your Schedule</h4>
+                        <p class="text-xs leading-relaxed mb-4">Input your monthly net income and your two payout dates. FinTrack immediately builds a 6-month forward projection of your cycles.</p>
+                        
+                        <h4 class="font-bold text-white mb-2">2. Define Obligations</h4>
+                        <p class="text-xs leading-relaxed">Add your recurring bills (Rent, Internet, Insurance). FinTrack assigns them to the correct cycle based on their due date.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">3. Track & Execute</h4>
+                        <p class="text-xs leading-relaxed mb-4">On payday, open your Dashboard. See exactly what is due "Now" (Active Cycle) vs "Later" (Next Cycle). Mark bills as paid with a single click.</p>
+                        
+                        <h4 class="font-bold text-white mb-2">4. Data Privacy & Security</h4>
+                        <p class="text-xs leading-relaxed">FinTrack leverages Google Firebase for enterprise-grade security. Your financial data is stored in a private Firestore collection accessible only by your authenticated Google Account. No data is sold to third parties.</p>
+                    </div>
                 </div>
             </div>
             
-            <div class="text-center text-xs text-gray-600 pt-8">
-                <p>&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
-                <div class="flex justify-center gap-4 mt-2">
-                    <a href="#" class="hover:text-gray-400">Privacy Policy</a>
-                    <a href="#" class="hover:text-gray-400">Terms of Service</a>
+            <!-- Footer / Sitemap -->
+            <div class="border-t border-gray-800 pt-8 mt-8 text-center">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500 mb-8 max-w-2xl mx-auto">
+                    <div class="flex flex-col gap-2">
+                        <span class="font-bold text-gray-400">App Features</span>
+                        <span>Dashboard Overview</span>
+                        <span>Bill Management</span>
+                        <span>Income Forecasting</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="font-bold text-gray-400">Tools</span>
+                        <span>Cycle Calculator</span>
+                        <span>PDF Statement Export</span>
+                        <span>Arrears Tracking</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="font-bold text-gray-400">Legal</span>
+                        <a href="https://www.freeprivacypolicy.com/live/cf499648-08cc-454f-8387-46dbc2a76e37" target="_blank" class="hover:text-white transition-colors">Privacy Policy</a>
+                        <span class="cursor-not-allowed opacity-50">Terms of Service</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="font-bold text-gray-400">Support</span>
+                        <span>Contact Us</span>
+                        <span>FAQ</span>
+                    </div>
                 </div>
+                <p class="text-[10px] text-gray-700">&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
             </div>
         </div>
     </div>

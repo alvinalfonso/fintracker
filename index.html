@@ -32,10 +32,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- GOOGLE ADSENSE SCRIPT -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7502471894485955"
-     crossorigin="anonymous"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 8px; }
@@ -51,20 +47,6 @@
         
         .cycle-active { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); } 
         .cycle-next { border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.05); }
-        
-        /* Ad Container Styling */
-        .ad-container {
-            width: 100%;
-            min-height: 90px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            position: relative;
-        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
@@ -121,17 +103,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- ADSENSE BANNER SLOT -->
-            <div class="ad-container flex">
-                <ins class="adsbygoogle"
-                     style="display:block; width:100%; height:90px;"
-                     data-ad-client="ca-pub-7502471894485955"
-                     data-ad-slot="9784525673"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <span class="text-xs text-gray-600 absolute pointer-events-none">Advertisement</span>
             </div>
 
             <!-- Totals -->
@@ -690,7 +661,6 @@
         let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
         let unsubscribers = [];
         let spendChart = null;
-        let adsLoaded = false;
 
         const initAuth = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -701,11 +671,6 @@
                 if(u) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
-                    
-                    if (!adsLoaded) {
-                        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); adsLoaded = true; } catch (e) {}
-                    }
-
                     initDataListeners(u.uid);
                     document.getElementById('auth-section').innerHTML = `<button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400">Sign Out</button>`;
                 } else {

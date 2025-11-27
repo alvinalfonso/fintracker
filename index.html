@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FinTrack is a smart finance dashboard designed for paycheck budgeting, bill tracking, and financial forecasting.">
     <title>FinTrack - Smart Finance Dashboard</title>
     
     <!-- Tailwind CSS -->
@@ -14,8 +13,15 @@
             theme: {
                 extend: {
                     colors: {
-                        gray: { 850: '#1f2937', 900: '#111827', 950: '#0b0f19' },
-                        brand: { 500: '#3b82f6', 600: '#2563eb' }
+                        gray: {
+                            850: '#1f2937',
+                            900: '#111827',
+                            950: '#0b0f19',
+                        },
+                        brand: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        }
                     }
                 }
             }
@@ -28,9 +34,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- jsPDF & AutoTable -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -47,20 +50,6 @@
         
         .cycle-active { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); } 
         .cycle-next { border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.05); }
-        
-        /* Ad Container Styling */
-        .ad-container {
-            width: 100%;
-            min-height: 90px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            position: relative;
-        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
@@ -75,9 +64,7 @@
                     </div>
                     <span class="font-bold text-xl tracking-tight">FinTrack</span>
                 </div>
-                <div id="auth-section" class="flex items-center gap-3">
-                    <!-- Populated by JS -->
-                </div>
+                <div id="auth-section" class="flex items-center gap-4"></div>
             </div>
         </div>
     </nav>
@@ -86,41 +73,15 @@
     <main id="app-container" class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 hidden">
         
         <!-- Tabs -->
-        <div class="flex space-x-1 bg-gray-900/50 p-1 rounded-xl mb-8 w-full max-w-2xl mx-auto border border-gray-800 overflow-x-auto">
+        <div class="flex space-x-1 bg-gray-900/50 p-1 rounded-xl mb-8 w-full max-w-md mx-auto border border-gray-800 overflow-x-auto">
             <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 text-brand-500 bg-gray-800 shadow-sm whitespace-nowrap">Dashboard</button>
-            <button onclick="switchTab('receivables')" id="tab-receivables" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 transition-all duration-200 whitespace-nowrap">Receivables</button>
-            <button onclick="switchTab('bills')" id="tab-bills" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 transition-all duration-200 whitespace-nowrap">Bills</button>
+            <button onclick="switchTab('bills')" id="tab-bills" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 transition-all duration-200 whitespace-nowrap">Recurring Bills</button>
             <button onclick="switchTab('goals')" id="tab-goals" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 transition-all duration-200 whitespace-nowrap">Goals</button>
             <button onclick="switchTab('forecast')" id="tab-forecast" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 transition-all duration-200 whitespace-nowrap">Forecast</button>
         </div>
 
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section space-y-6 animate-fade-in">
-            <!-- Content Value Add -->
-            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
-                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-circle-info text-brand-500 mr-2"></i>Financial Snapshot</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    This dashboard provides a real-time overview of your current financial health. The <strong>Active Cycle</strong> card highlights obligations that must be settled before your next payout, while the <strong>Upcoming Cycle</strong> card helps you plan ahead. Use the export feature to generate financial statements for record-keeping.
-                </p>
-            </div>
-
-            <!-- Export Header -->
-            <div class="flex justify-end mb-4">
-                <div class="relative inline-block text-left group">
-                    <button class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold py-2 px-4 rounded-lg border border-gray-700 flex items-center gap-2 transition-colors">
-                        <i class="fa-solid fa-file-pdf text-red-400"></i> Export Statement
-                        <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
-                    </button>
-                    <!-- Dropdown -->
-                    <div class="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div class="py-1">
-                            <button onclick="exportStatement('prev')" class="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white">Previous Cycle</button>
-                            <button onclick="exportStatement('active')" class="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white">Active Cycle</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Totals -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
@@ -133,7 +94,10 @@
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-arrow-trend-down text-4xl text-red-400"></i></div>
                     <p class="text-gray-400 text-sm font-medium">Total Expenses Paid</p>
                     <h3 class="text-3xl font-bold text-white mt-2" id="dash-total-paid">₱0.00</h3>
-                    <div id="cycle-comparison" class="mt-2 text-xs flex items-center gap-1"></div>
+                    <!-- Cycle Comparison Widget -->
+                    <div id="cycle-comparison" class="mt-2 text-xs flex items-center gap-1">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
                 <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-circle-exclamation text-4xl text-yellow-400"></i></div>
@@ -169,7 +133,7 @@
                     
                     <div class="bg-gray-900/50 rounded-lg p-3 mb-3 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-400" id="cycle-active-income-label">Total Income (Est + Recv)</span>
+                            <span class="text-xs text-gray-400" id="cycle-active-income-label">Est. Income</span>
                             <span class="text-sm font-bold text-green-400" id="cycle-active-income">₱0.00</span>
                         </div>
                         <div class="flex justify-between items-center border-t border-gray-800 pt-2">
@@ -184,7 +148,7 @@
             <!-- Next Cycle -->
             <div class="glass-panel rounded-2xl border border-gray-800 p-5 cycle-next">
                  <div class="flex justify-between items-start mb-4">
-                   <div>
+                    <div>
                         <h3 class="font-bold text-lg text-purple-400 flex items-center gap-2">
                             <i class="fa-solid fa-forward"></i> Upcoming Cycle
                         </h3>
@@ -232,40 +196,8 @@
             </div>
         </div>
 
-        <!-- RECEIVABLES VIEW -->
-        <div id="view-receivables" class="view-section hidden space-y-6">
-            <!-- Content Value Add -->
-            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
-                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-hand-holding-dollar text-green-500 mr-2"></i>Incoming Funds Management</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Track expected income from various sources such as freelancing, lending, or refunds. These "Receivables" are automatically integrated into your cycle income calculations, giving you a more accurate picture of your available spending power. Mark items as "Received" to move them to your Ledger.
-                </p>
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="space-y-1">
-                    <h2 class="text-2xl font-bold">Receivables</h2>
-                    <p class="text-gray-400 text-sm">Track expected incoming money (Lending, Freelance, etc.).</p>
-                </div>
-                <button onclick="openReceivableModal()" class="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-green-500/20 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Add Receivable
-                </button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="receivables-list">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-
         <!-- GOALS VIEW -->
         <div id="view-goals" class="view-section hidden space-y-6">
-            <!-- Content Value Add -->
-            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
-                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-bullseye text-brand-500 mr-2"></i>Sinking Funds & Targets</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Setting financial goals is crucial for long-term stability. Use this section to track "Sinking Funds"—savings for specific future expenses like holidays, emergency funds, or large purchases. Allocate a portion of your surplus income from each cycle to reach your targets faster.
-                </p>
-            </div>
-
             <div class="flex justify-between items-center">
                 <div class="space-y-1">
                     <h2 class="text-2xl font-bold">Savings Goals</h2>
@@ -275,21 +207,15 @@
                     <i class="fa-solid fa-plus"></i> Add Goal
                 </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="goals-list"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="goals-list">
+                <!-- Populated by JS -->
+            </div>
         </div>
 
         <!-- BILLS VIEW -->
         <div id="view-bills" class="view-section hidden space-y-6">
-            <!-- Content Value Add -->
-            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
-                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Recurring Obligations</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Manage your fixed monthly or semi-monthly expenses here. FinTrack uses these details to automatically populate your Dashboard cycles. Ensure your due dates are accurate to prevent missed payments. Bills can be filtered by frequency and sorted by amount or urgency.
-                </p>
-            </div>
-
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-               <div class="space-y-1">
+                <div class="space-y-1">
                     <h2 class="text-2xl font-bold">Recurring Bills</h2>
                     <p class="text-gray-400 text-sm">Manage fixed obligations.</p>
                 </div>
@@ -320,14 +246,6 @@
 
         <!-- FORECAST VIEW -->
         <div id="view-forecast" class="view-section hidden space-y-6">
-            <!-- Content Value Add -->
-            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
-                <h2 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-crystal-ball text-indigo-500 mr-2"></i>Future Cash Flow Projection</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    The Forecast view projects your financial status up to 3 months (6 cycles) into the future. It takes your base salary, adds any expected receivables, and subtracts known recurring bills for that specific period. This allows you to identify potential cash flow gaps before they happen.
-                </p>
-            </div>
-
             <div class="glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-800">
                 <div class="flex items-center gap-3">
                     <div class="p-3 bg-gray-800 rounded-lg text-brand-400"><i class="fa-solid fa-sliders"></i></div>
@@ -340,40 +258,11 @@
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6" id="forecast-container"></div>
         </div>
-
-        <!-- APP FOOTER / SITEMAP (Retained after login) -->
-        <div class="border-t border-gray-800 pt-8 mt-12 text-center">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500 mb-8 max-w-2xl mx-auto">
-                <div class="flex flex-col gap-2">
-                    <span class="font-bold text-gray-400">App Features</span>
-                    <span>Dashboard Overview</span>
-                    <span>Bill Management</span>
-                    <span>Income Forecasting</span>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <span class="font-bold text-gray-400">Tools</span>
-                    <span>Cycle Calculator</span>
-                    <span>PDF Statement Export</span>
-                    <span>Arrears Tracking</span>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <span class="font-bold text-gray-400">Legal</span>
-                    <a href="https://www.freeprivacypolicy.com/live/cf499648-08cc-454f-8387-46dbc2a76e37" target="_blank" class="hover:text-white transition-colors">Privacy Policy</a>
-                    <span class="cursor-not-allowed opacity-50">Terms of Service</span>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <span class="font-bold text-gray-400">Support</span>
-                    <span>Contact Us</span>
-                    <span>FAQ</span>
-                </div>
-            </div>
-            <p class="text-[10px] text-gray-700">&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
-        </div>
     </main>
 
     <!-- Loading -->
     <div id="loading-screen" class="fixed inset-0 bg-gray-950 flex items-center justify-center z-40">
-       <div class="text-center">
+        <div class="text-center">
             <div class="inline-block w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <h2 class="text-xl font-semibold text-white">FinTrack</h2>
             <p class="text-gray-500 text-sm mt-2">Loading data...</p>
@@ -381,171 +270,173 @@
     </div>
 
     <!-- Login -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex flex-col items-center justify-start z-50 hidden overflow-y-auto pt-10 pb-10">
-        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8 flex-shrink-0 relative">
-            
+    <div id="login-screen" class="fixed inset-0 bg-gray-950 flex items-center justify-center z-50 hidden">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl">
             <div class="w-16 h-16 bg-brand-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-500"><i class="fa-solid fa-wallet text-3xl"></i></div>
-            
-            <!-- Auth Toggle -->
-            <div class="flex bg-gray-900/50 rounded-lg p-1 mb-6 border border-gray-700">
-                <button onclick="toggleAuthMode('login')" id="btn-mode-login" class="flex-1 py-2 text-sm font-bold rounded-md bg-gray-700 text-white transition-all">Log In</button>
-                <button onclick="toggleAuthMode('signup')" id="btn-mode-signup" class="flex-1 py-2 text-sm font-bold rounded-md text-gray-400 hover:text-white transition-all">Sign Up</button>
-            </div>
-
-            <!-- Email/Pass Form -->
-            <div id="auth-form-container" class="space-y-4 mb-6 text-left">
-                <div>
-                    <label class="text-xs text-gray-400 font-medium ml-1">Email Address</label>
-                    <input type="email" id="auth-email" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-brand-500 outline-none transition-colors" placeholder="name@example.com">
-                </div>
-                <div>
-                    <label class="text-xs text-gray-400 font-medium ml-1">Password</label>
-                    <input type="password" id="auth-password" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-brand-500 outline-none transition-colors" placeholder="••••••••">
-                </div>
-                
-                <button onclick="handleEmailAuth()" id="btn-email-auth" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-brand-500/20">
-                    Log In
-                </button>
-            </div>
-
-            <div class="relative mb-6" id="google-auth-divider">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-700"></div></div>
-                <div class="relative flex justify-center text-xs"><span class="px-2 bg-gray-800 text-gray-500">OR CONTINUE WITH</span></div>
-            </div>
-
-            <button onclick="handleGoogleSignIn()" id="btn-google-auth" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group border border-gray-200">
+            <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
+            <button id="btn-google-login" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group mt-8">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
-                <span>Google</span>
+                <span>Continue with Google</span>
             </button>
-            
-            <p id="auth-message" class="text-xs text-center mt-4 text-red-400 hidden"></p>
-        </div>
-
-        <!-- CONTENT FOR ADSENSE APPROVAL (Visible on Login) -->
-        <div class="max-w-5xl w-full mx-4 text-gray-400 space-y-12 pb-12">
-            
-            <!-- Intro Section -->
-            <div class="text-center space-y-4">
-                <h2 class="text-3xl font-bold text-white">Master Your Paycheck Cycles</h2>
-                <p class="text-sm max-w-2xl mx-auto leading-relaxed">
-                    FinTrack is a personal finance tool built on the philosophy of "Cycle Budgeting". Unlike traditional monthly budgets, FinTrack aligns with your actual payout dates (e.g., the 15th and 30th), giving you clarity on exactly which bills need to be covered by which paycheck.
-                </p>
-            </div>
-            
-            <!-- Features Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-panel p-6 rounded-xl border border-gray-800">
-                    <div class="text-brand-500 text-2xl mb-3"><i class="fa-solid fa-rotate"></i></div>
-                    <h3 class="font-bold text-white mb-2">Smart Cycle Logic</h3>
-                    <p class="text-xs leading-relaxed">Automatically splits your monthly bills into custom pay periods. If today is the 10th and your next pay is the 15th, FinTrack shows you only the bills due in that 5-day window, preventing premature spending.</p>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border border-gray-800">
-                    <div class="text-green-500 text-2xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
-                    <h3 class="font-bold text-white mb-2">Future Forecasting</h3>
-                    <p class="text-xs leading-relaxed">Projects your cash flow up to 3 months in advance. By analyzing your recurring bills and expected salary, the Forecast engine identifies potential cash flow gaps before they happen.</p>
-                </div>
-                <div class="glass-panel p-6 rounded-xl border border-gray-800">
-                    <div class="text-purple-500 text-2xl mb-3"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <h3 class="font-bold text-white mb-2">Debt & Arrears Tracker</h3>
-                    <p class="text-xs leading-relaxed">Missed a payment? FinTrack automatically carries over unpaid amounts to the next cycle as 'Arrears'. This ensures debts are never forgotten and are prioritized in your next payout.</p>
-                </div>
-            </div>
-
-            <!-- How It Works Section (New Content) -->
-            <div class="border-t border-gray-800 pt-10">
-                <h3 class="text-2xl font-bold text-white mb-6 text-center">How FinTrack Works</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <h4 class="font-bold text-white mb-2">1. Set Your Schedule</h4>
-                        <p class="text-xs leading-relaxed mb-4">Input your monthly net income and your two payout dates. FinTrack immediately builds a 6-month forward projection of your cycles.</p>
-                        
-                        <h4 class="font-bold text-white mb-2">2. Define Obligations</h4>
-                        <p class="text-xs leading-relaxed">Add your recurring bills (Rent, Internet, Insurance). FinTrack assigns them to the correct cycle based on their due date.</p>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-white mb-2">3. Track & Execute</h4>
-                        <p class="text-xs leading-relaxed mb-4">On payday, open your Dashboard. See exactly what is due "Now" (Active Cycle) vs "Later" (Next Cycle). Mark bills as paid with a single click.</p>
-                        
-                        <h4 class="font-bold text-white mb-2">4. Data Privacy & Security</h4>
-                        <p class="text-xs leading-relaxed">FinTrack leverages Google Firebase for enterprise-grade security. Your financial data is stored in a private Firestore collection accessible only by your authenticated Google Account. No data is sold to third parties.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Footer / Sitemap -->
-            <div class="border-t border-gray-800 pt-8 mt-8 text-center">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500 mb-8 max-w-2xl mx-auto">
-                    <div class="flex flex-col gap-2">
-                        <span class="font-bold text-gray-400">App Features</span>
-                        <span>Dashboard Overview</span>
-                        <span>Bill Management</span>
-                        <span>Income Forecasting</span>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <span class="font-bold text-gray-400">Tools</span>
-                        <span>Cycle Calculator</span>
-                        <span>PDF Statement Export</span>
-                        <span>Arrears Tracking</span>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <span class="font-bold text-gray-400">Legal</span>
-                        <a href="https://www.freeprivacypolicy.com/live/cf499648-08cc-454f-8387-46dbc2a76e37" target="_blank" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <span class="cursor-not-allowed opacity-50">Terms of Service</span>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <span class="font-bold text-gray-400">Support</span>
-                        <span>Contact Us</span>
-                        <span>FAQ</span>
-                    </div>
-                </div>
-                <p class="text-[10px] text-gray-700">&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
-            </div>
         </div>
     </div>
 
-    <!-- MODAL: Account Settings -->
-    <div id="modal-account" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+    <!-- MODAL: Transaction -->
+    <div id="modal-expense" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <h3 class="text-xl font-bold mb-4 text-white">Account Settings</h3>
-            
-            <div class="space-y-6">
-                <div class="bg-gray-800 rounded-lg p-4 flex items-center gap-3">
-                    <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-lg" id="acc-initial">U</div>
-                    <div class="overflow-hidden">
-                        <p class="text-sm font-bold text-white" id="acc-email">user@example.com</p>
-                        <p class="text-xs text-gray-400">Provider: <span id="acc-provider">Email</span></p>
-                    </div>
+            <h3 class="text-xl font-bold mb-4 text-white" id="expense-modal-title">Transaction</h3>
+            <input type="hidden" id="expense-id">
+            <div class="space-y-4">
+                <div class="flex bg-gray-800 rounded-lg p-1">
+                    <button type="button" onclick="setExpenseType('manual')" id="btn-type-expense" class="flex-1 py-1.5 text-sm rounded-md font-medium transition-colors bg-gray-700 text-white">Expense</button>
+                    <button type="button" onclick="setExpenseType('income')" id="btn-type-income" class="flex-1 py-1.5 text-sm rounded-md font-medium transition-colors text-gray-400 hover:text-white">Income</button>
+                    <input type="hidden" id="expense-type" value="manual">
                 </div>
-
+                <input type="text" id="expense-desc" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="Description">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="expense-amount" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="Amount">
+                    <input type="date" id="expense-date" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                </div>
                 <div>
-                    <h4 class="text-sm font-bold text-gray-300 mb-3">Change Password</h4>
-                    <input type="password" id="acc-new-pass" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white mb-2" placeholder="New Password">
-                    <button onclick="changePassword()" class="w-full bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 rounded-lg transition-colors">Update Password</button>
-                    <p id="pass-msg" class="text-xs mt-2 text-center"></p>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Category</label>
+                    <select id="expense-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                        <option value="Housing">Housing</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Debt">Debt</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Savings">Savings</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
             </div>
-
-            <div class="flex gap-3 mt-6 border-t border-gray-800 pt-4">
-                <button onclick="closeModal('modal-account')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Close</button>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('modal-expense')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
+                <button onclick="saveExpense()" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: Set Initial Password (New Google Users) -->
-    <div id="modal-create-password" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50">
-        <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl w-full max-w-sm shadow-2xl text-center">
-            <div class="w-14 h-14 bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-500 text-2xl"><i class="fa-solid fa-lock"></i></div>
-            <h3 class="text-xl font-bold mb-2 text-white">Create Password</h3>
-            <p class="text-sm text-gray-400 mb-6">Complete your account setup. This password will be required for all future logins.</p>
-            
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="text-xs text-gray-400 font-medium ml-1">New Password</label>
-                    <input type="password" id="init-password" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-brand-500 outline-none" placeholder="Min. 6 characters">
+    <!-- MODAL: Bill -->
+    <div id="modal-bill" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white">Recurring Bill</h3>
+                <button id="btn-delete-bill" onclick="deleteBill()" class="text-red-400 text-xs hover:underline hidden">Delete</button>
+            </div>
+            <input type="hidden" id="bill-id">
+            <div class="space-y-4">
+                <input type="text" id="bill-name" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="Bill Name">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="bill-amount" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="Amount">
+                    <select id="bill-freq" onchange="toggleBillFields()" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                        <option value="monthly">Monthly</option>
+                        <option value="semi-monthly">Semi-Monthly</option>
+                        <option value="one-time">One-Time</option>
+                    </select>
                 </div>
-                <button onclick="completeGoogleSetup()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-brand-500/20">
-                    Set Password & Verify Email
-                </button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">Due Day</label><input type="number" id="bill-day" min="1" max="31" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                    <div id="field-due-2" class="hidden"><label class="block text-xs font-medium text-gray-400 mb-1">2nd Due Day</label><input type="number" id="bill-day-2" min="1" max="31" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">Current Arrears</label><input type="number" id="bill-arrears" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="0.00"></div>
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">Category</label>
+                        <select id="bill-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                            <option value="Housing">Housing</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Debt">Debt</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs text-gray-500">Start Date</label><input type="date" id="bill-start-date" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                    <div><label class="text-xs text-gray-500">End Date</label><input type="date" id="bill-end-date" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('modal-bill')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
+                <button onclick="saveBill()" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg">Save Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Goal -->
+    <div id="modal-goal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white" id="goal-modal-title">Savings Goal</h3>
+            <input type="hidden" id="goal-id">
+            <div class="space-y-4">
+                <input type="text" id="goal-name" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white" placeholder="Goal Name (e.g. Emergency Fund)">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">Target Amount</label><input type="number" id="goal-target" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">Current Saved</label><input type="number" id="goal-current" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('modal-goal')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
+                <button onclick="saveGoal()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-medium py-2.5 rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Settings -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white">Budget Settings</h3>
+            <div class="space-y-4">
+                <div><label class="block text-xs font-medium text-gray-400 mb-1">Total Net Monthly Salary</label><input type="number" id="setting-income" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">1st Payout Day</label><input type="number" id="setting-day1" min="1" max="31" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                    <div><label class="block text-xs font-medium text-gray-400 mb-1">2nd Payout Day</label><input type="number" id="setting-day2" min="1" max="31" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white"></div>
+                </div>
+                <div class="border-t border-gray-800 pt-4 mt-2">
+                    <h4 class="text-sm font-bold text-white mb-3">Current Payouts (Quick Action)</h4>
+                    <div class="grid grid-cols-2 gap-3" id="settings-payout-status"></div>
+                </div>
+                <div class="border-t border-gray-800 pt-4 mt-2">
+                    <button onclick="exportData()" class="w-full bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium py-2.5 rounded-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Export Data (JSON)
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('modal-settings')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
+                <button onclick="saveSettings()" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirm Payment -->
+    <div id="modal-transaction" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold mb-2 text-white" id="trans-modal-title">Confirm</h3>
+            <p class="text-sm text-gray-400 mb-4" id="trans-modal-desc">Confirm transaction details.</p>
+            <input type="hidden" id="trans-ref-id">
+            <input type="hidden" id="trans-type">
+            <input type="hidden" id="trans-target-date"> 
+            <input type="hidden" id="trans-arrears-amt" value="0">
+            <input type="hidden" id="trans-expected-amt" value="0">
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Scheduled / Due Date</label>
+                    <input type="text" id="trans-target-display" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-gray-400 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Amount Paying</label>
+                    <input type="number" id="trans-amount" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Date Paid / Received</label>
+                    <input type="date" id="trans-date" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('modal-transaction')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
+                <button onclick="confirmTransaction()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-medium py-2.5 rounded-lg">Confirm</button>
             </div>
         </div>
     </div>
@@ -553,244 +444,83 @@
     <!-- APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updatePassword, EmailAuthProvider, reauthenticateWithCredential, getAdditionalUserInfo } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        
-        const config = {
-            apiKey: "AIzaSyCe52ww3OoAlkhwpANeDrQ1fF2OcxOdSrc",
-            authDomain: "trackerlatest.firebaseapp.com",
-            databaseURL: "https://trackerlatest-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "trackerlatest",
-            storageBucket: "trackerlatest.firebasestorage.app",
-            messagingSenderId: "991862037704",
-            appId: "1:991862037704:web:9ea5d0496d3b16491159fd",
-            measurementId: "G-RPDJ5FD5LC"
-        };
 
+        const config = {
+            apiKey: "AIzaSyCWr-FADGeiUDxNokX0fdLubp-mnPZMhOM",
+            authDomain: "fintrack-42a39.firebaseapp.com",
+            databaseURL: "https://fintrack-42a39-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "fintrack-42a39",
+            storageBucket: "fintrack-42a39.firebasestorage.app",
+            messagingSenderId: "748412377392",
+            appId: "1:748412377392:web:918cc14cfcada4495fd0f5"
+        };
         const app = initializeApp(config);
-        let analytics;
-        try { analytics = getAnalytics(app); } catch(e) { console.warn("Analytics failed:", e); }
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'fintrack-prod';
 
         let currentUser = null;
-        let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
+        let state = { bills: [], ledger: [], goals: [], settings: { income: 0, day1: 15, day2: 30 } };
         let unsubscribers = [];
-        let authMode = 'login'; // 'login' or 'signup'
-        let pendingGoogleUser = null; // Store user during password creation
+        let spendChart = null;
 
-        // --- FUNCTIONS DEFINED FIRST TO ENSURE HOISTING/AVAILABILITY ---
-
-        async function initAuth() {
+        const initAuth = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
             }
             onAuthStateChanged(auth, u => {
+                currentUser = u;
                 if(u) {
-                    // 1. Check Google pending setup
-                    if (pendingGoogleUser && u.uid === pendingGoogleUser.uid) {
-                        return; 
-                    }
-                    // 2. Check Password Provider existence
-                    const hasPassword = u.providerData.some(p => p.providerId === 'password');
-                    if (!hasPassword) {
-                        pendingGoogleUser = u;
-                        document.getElementById('modal-create-password').classList.remove('hidden');
-                        document.getElementById('modal-create-password').classList.add('flex');
-                        return; 
-                    }
-                    // 3. Check Email Verification
-                    if (!u.emailVerified) {
-                        document.getElementById('auth-message').innerText = "Please verify your email address before logging in.";
-                        document.getElementById('auth-message').classList.remove('hidden');
-                        signOut(auth);
-                        return;
-                    }
-
-                    // 4. Success
-                    currentUser = u;
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
-                    
                     initDataListeners(u.uid);
-                    
-                    const initial = u.email ? u.email[0].toUpperCase() : 'U';
-                    document.getElementById('auth-section').innerHTML = `
-                        <button onclick="openAccountModal()" class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center text-sm font-bold border border-gray-700 hover:bg-gray-700 transition-colors">
-                            ${initial}
-                        </button>
-                        <button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400 hover:text-white transition-colors border border-gray-700">Sign Out</button>
-                    `;
+                    document.getElementById('auth-section').innerHTML = `<button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400">Sign Out</button>`;
                 } else {
-                    // Logged Out
-                    currentUser = null;
                     document.getElementById('loading-screen').classList.add('hidden');
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('app-container').classList.add('hidden');
                     unsubscribers.forEach(u => u());
                 }
             });
-        }
+        };
+        window.signOutAuth = () => signOut(auth);
+        document.getElementById('btn-google-login').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => {
+            console.error(e); if(window.location.hostname.includes("googleusercontent")) signInAnonymously(auth);
+        }));
 
-        function toggleAuthMode(mode) {
-            authMode = mode;
-            const btnLogin = document.getElementById('btn-mode-login');
-            const btnSignup = document.getElementById('btn-mode-signup');
-            const btnAction = document.getElementById('btn-email-auth');
-            const googleDiv = document.getElementById('google-auth-divider');
-            const googleBtn = document.getElementById('btn-google-auth');
-            
-            if (mode === 'login') {
-                btnLogin.classList.add('bg-gray-700', 'text-white');
-                btnLogin.classList.remove('text-gray-400');
-                btnSignup.classList.remove('bg-gray-700', 'text-white');
-                btnSignup.classList.add('text-gray-400');
-                btnAction.innerText = "Log In";
-                // Hide Google on Login
-                googleDiv.classList.add('hidden');
-                googleBtn.classList.add('hidden');
-            } else {
-                btnSignup.classList.add('bg-gray-700', 'text-white');
-                btnSignup.classList.remove('text-gray-400');
-                btnLogin.classList.remove('bg-gray-700', 'text-white');
-                btnLogin.classList.add('text-gray-400');
-                btnAction.innerText = "Sign Up";
-                // Show Google on Sign Up
-                googleDiv.classList.remove('hidden');
-                googleBtn.classList.remove('hidden');
-            }
-            document.getElementById('auth-message').classList.add('hidden');
-        }
-
-        async function handleEmailAuth() {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            const msgEl = document.getElementById('auth-message');
-            
-            if (!email || !pass) {
-                msgEl.innerText = "Please enter email and password.";
-                msgEl.classList.remove('hidden');
-                return;
-            }
-
-            msgEl.innerText = "Processing...";
-            msgEl.classList.remove('hidden', 'text-red-400');
-            msgEl.classList.add('text-gray-400');
-
-            try {
-                if (authMode === 'signup') {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                    await sendEmailVerification(userCredential.user);
-                    alert("Account created! A verification email has been sent to " + email + ". Please verify before logging in.");
-                    await signOut(auth);
-                    toggleAuthMode('login');
-                } else {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                }
-            } catch (error) {
-                console.error(error);
-                let errText = error.message;
-                if (error.code === 'auth/email-already-in-use') errText = "Email already in use.";
-                if (error.code === 'auth/wrong-password') errText = "Invalid password.";
-                if (error.code === 'auth/user-not-found') errText = "User not found.";
-                if (error.code === 'auth/weak-password') errText = "Password should be at least 6 characters.";
-                msgEl.innerText = errText;
-                msgEl.classList.add('text-red-400');
-            }
-        }
-
-        async function handleGoogleSignIn() {
-            try {
-                const result = await signInWithPopup(auth, new GoogleAuthProvider());
-                const additionalInfo = getAdditionalUserInfo(result);
-                // If New User OR Existing user without password provider
-                const hasPassword = result.user.providerData.some(p => p.providerId === 'password');
-                if (additionalInfo.isNewUser || !hasPassword) {
-                    pendingGoogleUser = result.user;
-                    document.getElementById('modal-create-password').classList.remove('hidden');
-                    document.getElementById('modal-create-password').classList.add('flex');
-                }
-                // If existing user with password, authStateChanged will handle it (or catch if email not verified)
-            } catch (e) {
-                console.error(e);
-                alert("Google Error: " + e.message);
-            }
-        }
-
-        async function completeGoogleSetup() {
-            const pass = document.getElementById('init-password').value;
-            if (!pass || pass.length < 6) {
-                alert("Password must be at least 6 characters.");
-                return;
-            }
-            
-            try {
-                await updatePassword(pendingGoogleUser, pass);
-                await sendEmailVerification(pendingGoogleUser);
-                await signOut(auth);
-                pendingGoogleUser = null;
-                document.getElementById('modal-create-password').classList.add('hidden');
-                document.getElementById('modal-create-password').classList.remove('flex');
-                alert("Setup complete! Verification email sent.\nPlease check your inbox, then Log In with your email and new password.");
-                toggleAuthMode('login');
-            } catch (e) {
-                console.error(e);
-                alert("Setup Error: " + e.message + "\nIf this persists, try signing up with Email directly.");
-            }
-        }
-
-        function signOutAuth() { signOut(auth); }
-        
-        function openAccountModal() {
-            if (!currentUser) return;
-            document.getElementById('acc-email').innerText = currentUser.email;
-            document.getElementById('acc-initial').innerText = currentUser.email[0].toUpperCase();
-            document.getElementById('acc-provider').innerText = 'Email/Password (Linked)';
-            openModal('modal-account');
-        }
-
-        async function changePassword() {
-            const newPass = document.getElementById('acc-new-pass').value;
-            const msgEl = document.getElementById('pass-msg');
-            if (!newPass || newPass.length < 6) {
-                msgEl.innerText = "Password must be at least 6 characters.";
-                msgEl.className = "text-xs mt-2 text-center text-red-400";
-                return;
-            }
-            try {
-                await updatePassword(currentUser, newPass);
-                msgEl.innerText = "Password updated successfully!";
-                msgEl.className = "text-xs mt-2 text-center text-green-400";
-                document.getElementById('acc-new-pass').value = '';
-            } catch (error) {
-                msgEl.innerText = error.code === 'auth/requires-recent-login' ? "Please log out and log in again to change password." : "Error: " + error.message;
-                msgEl.className = "text-xs mt-2 text-center text-red-400";
-            }
-        }
+        initAuth();
 
         function initDataListeners(uid) {
             document.getElementById('loading-screen').classList.remove('hidden');
             const path = (c) => collection(db, 'artifacts', appId, 'users', uid, c);
-            const handleErr = (context, e) => {
-                console.error(`${context} Error:`, e);
-                if(e.code === 'permission-denied' || e.code === 'unavailable') alert(`Connection Error (${context}): ${e.message}`);
-                document.getElementById('loading-screen').classList.add('hidden'); 
-            };
-            unsubscribers.push(onSnapshot(path('settings'), s => { if(!s.empty) state.settings = { ...state.settings, ...s.docs[0].data(), id: s.docs[0].id }; refreshUI(); }, e => handleErr('Settings', e)));
-            unsubscribers.push(onSnapshot(path('bills'), s => { state.bills = s.docs.map(d => ({id: d.id, ...d.data()})); refreshUI(); }, e => handleErr('Bills', e)));
-            unsubscribers.push(onSnapshot(path('goals'), s => { state.goals = s.docs.map(d => ({id: d.id, ...d.data()})); refreshUI(); }, e => handleErr('Goals', e)));
-            unsubscribers.push(onSnapshot(path('receivables'), s => { state.receivables = s.docs.map(d => ({id: d.id, ...d.data()})); refreshUI(); }, e => handleErr('Receivables', e)));
-            unsubscribers.push(onSnapshot(path('ledger'), s => { state.ledger = s.docs.map(d => ({id: d.id, ...d.data()})); checkAutoDeferrals(); refreshUI(); document.getElementById('loading-screen').classList.add('hidden'); }, e => handleErr('Ledger', e)));
-            setTimeout(() => { document.getElementById('loading-screen').classList.add('hidden'); }, 8000);
+            
+            unsubscribers.push(onSnapshot(path('settings'), s => {
+                if(!s.empty) state.settings = { ...state.settings, ...s.docs[0].data(), id: s.docs[0].id };
+                refreshUI();
+            }));
+            unsubscribers.push(onSnapshot(path('bills'), s => {
+                state.bills = s.docs.map(d => ({id: d.id, ...d.data()}));
+                refreshUI();
+            }));
+            unsubscribers.push(onSnapshot(path('goals'), s => {
+                state.goals = s.docs.map(d => ({id: d.id, ...d.data()}));
+                refreshUI();
+            }));
+            unsubscribers.push(onSnapshot(path('ledger'), s => {
+                state.ledger = s.docs.map(d => ({id: d.id, ...d.data()}));
+                checkAutoDeferrals();
+                refreshUI();
+                document.getElementById('loading-screen').classList.add('hidden');
+            }));
         }
 
-        // Logic Helpers
         async function checkAutoDeferrals() {
             if (!currentUser) return;
             const cycles = getPayoutCycles(new Date());
             const checkEndDate = cycles.active.start; 
+
             state.bills.forEach(async (bill) => {
                 if(!bill.startDate) return;
                 const start = new Date(bill.startDate);
@@ -803,6 +533,7 @@
                     if (bill.frequency === 'monthly' && d === bill.dueDay) isDue = true;
                     if (bill.frequency === 'semi-monthly' && (d === bill.dueDay || d === bill.dueDay2)) isDue = true;
                     if (bill.frequency === 'one-time' && toLocalISOString(ptr) === bill.startDate) isDue = true;
+
                     if(isDue) {
                         let terminated = false;
                         if (bill.endDate && ptr > new Date(bill.endDate)) terminated = true;
@@ -810,7 +541,8 @@
                             const dateStr = toLocalISOString(ptr);
                             const alreadyDeferred = state.ledger.some(l => l.refId === bill.id && l.type === 'defer' && (l.targetDate === dateStr || l.date === dateStr));
                             if(alreadyDeferred) { ptr.setDate(ptr.getDate() + 1); continue; }
-                            const status = getPaymentStatus(bill.id, dateStr);
+
+                            const status = getPaymentStatus(bill.id, dateStr); 
                             if (!status.isFullyPaid) {
                                 const unpaid = bill.amount - status.paid;
                                 if (unpaid > 0.1) {
@@ -821,7 +553,7 @@
                                             type: 'defer', amount: 0, date: dateStr, targetDate: dateStr, refId: bill.id, description: `Missed - Added to Arrears (${bill.name})`, isPaid: true, createdAt: new Date().toISOString()
                                         });
                                         await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', bill.id), { arrears: newArrears }, { merge: true });
-                                    } catch(e) {}
+                                    } catch(e) { console.error("Auto-defer error", e); }
                                 }
                             }
                         }
@@ -830,8 +562,9 @@
                 }
             });
         }
+
         function getPayoutCycles(referenceDate = new Date()) {
-            const y = referenceDate.getFullYear(), m = referenceDate.getMonth();
+            const y = referenceDate.getFullYear(), m = referenceDate.getMonth(), d = referenceDate.getDate();
             const { day1, day2 } = state.settings;
             const makeDate = (yy, mm, dd) => new Date(yy, mm, dd);
             const cycles = [
@@ -841,145 +574,207 @@
                 { start: makeDate(y, m+1, day1), end: makeDate(y, m+1, day2-1), type: 'Period 1' }
             ];
             let activeIdx = cycles.findIndex(c => referenceDate >= c.start && referenceDate <= c.end);
-            if (activeIdx === -1) activeIdx = 1; 
+            if (activeIdx === -1) activeIdx = 1;
             return { active: cycles[activeIdx], next: cycles[activeIdx + 1], prev: cycles[activeIdx - 1] || cycles[0] };
         }
-        function toLocalISOString(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
+
+        function toLocalISOString(date) {
+            const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
         function getPaymentStatus(billId, targetDateStr) {
             const entries = state.ledger.filter(l => l.refId === billId && l.isPaid && (l.targetDate === targetDateStr || l.date === targetDateStr));
             const paid = entries.reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
-            return { paid: paid, isFullyPaid: false };
-        }
-        function getCycleIncome(cycle) {
-            const d = cycle.start; const day = d.getDate(); const monthStr = toLocalISOString(d).slice(0, 7); 
-            let idx = -1; if (day === state.settings.day1) idx = 0; else if (day === state.settings.day2) idx = 1;
-            const cycleReceivables = state.receivables.filter(r => { const rDate = new Date(r.date); return !r.isReceived && rDate >= cycle.start && rDate <= cycle.end; });
-            const extraInc = cycleReceivables.reduce((sum, r) => sum + r.amount, 0);
-            let baseIncome = state.settings.income / 2; let isActual = false;
-            if (idx !== -1) { const idBase = `income_${monthStr}_${idx}`; const entry = state.ledger.find(l => l.refId === idBase && l.type === 'income'); if (entry) { baseIncome = entry.amount; isActual = true; } }
-            return { amount: baseIncome + extraInc, base: baseIncome, extra: extraInc, isActual: isActual };
-        }
-        function refreshUI() { renderDashboard(); renderBills(); renderReceivables(); renderForecast(); renderGoals(); }
-        function isBillCompleted(bill) {
-            if (bill.frequency === 'one-time') return state.ledger.some(l => l.refId === bill.id && l.isPaid);
-            if (bill.endDate) {
-                const end = new Date(bill.endDate); let lastDue = new Date(end.getFullYear(), end.getMonth(), bill.dueDay);
-                if (lastDue > end) lastDue.setMonth(lastDue.getMonth() - 1);
-                if(bill.frequency === 'semi-monthly' && bill.dueDay2) { let lastDue2 = new Date(end.getFullYear(), end.getMonth(), bill.dueDay2); if(lastDue2 > end) lastDue2.setMonth(lastDue2.getMonth() - 1); if(lastDue2 > lastDue) lastDue = lastDue2; }
-                const dateStr = toLocalISOString(lastDue); if (state.ledger.some(l => l.refId === bill.id && l.targetDate === dateStr && l.isPaid)) return true;
-            } return false;
+            return { paid: paid, isFullyPaid: false }; 
         }
 
-        // Renderers
-        function renderDashboard() {
-            const today = new Date(); const monthStr = toLocalISOString(today).slice(0, 7);
-            const txs = state.ledger.filter(t => t.date.startsWith(monthStr) && t.type !== 'defer');
+        // NEW: Get Actual Income for a specific cycle start date
+        function getCycleIncome(cycle) {
+            const d = cycle.start;
+            const day = d.getDate();
+            const monthStr = toLocalISOString(d).slice(0, 7); 
+            let idx = -1;
+            if (day === state.settings.day1) idx = 0; else if (day === state.settings.day2) idx = 1;
+            
+            if (idx !== -1) {
+                const idBase = `income_${monthStr}_${idx}`;
+                const entry = state.ledger.find(l => l.refId === idBase && l.type === 'income');
+                if (entry) return { amount: entry.amount, isActual: true };
+            }
+            return { amount: state.settings.income / 2, isActual: false };
+        }
+
+        function refreshUI() {
+            renderDashboard();
+            renderBills();
+            renderForecast();
+            renderGoals();
+        }
+
+        // Helper to check if bill is completed (paid up to termination or one-time)
+        function isBillCompleted(bill) {
+            if (bill.frequency === 'one-time') {
+                return state.ledger.some(l => l.refId === bill.id && l.isPaid);
+            }
+            if (bill.endDate) {
+                const end = new Date(bill.endDate);
+                // Check if the *last possible occurrence* is paid
+                // Simplification: If today > endDate AND no unpaid arrears, consider complete.
+                // OR: Check if a payment exists for a date >= endDate (or the last due date before it)
+                
+                // Let's find the last due date
+                let lastDue = new Date(end.getFullYear(), end.getMonth(), bill.dueDay);
+                if (lastDue > end) lastDue.setMonth(lastDue.getMonth() - 1);
+                
+                // If semi-monthly, check both
+                if(bill.frequency === 'semi-monthly' && bill.dueDay2) {
+                    let lastDue2 = new Date(end.getFullYear(), end.getMonth(), bill.dueDay2);
+                    if(lastDue2 > end) lastDue2.setMonth(lastDue2.getMonth() - 1);
+                    if(lastDue2 > lastDue) lastDue = lastDue2;
+                }
+                
+                const dateStr = toLocalISOString(lastDue);
+                // Check if paid for this date
+                const status = getPaymentStatus(bill.id, dateStr);
+                // If paid > 0 (assuming last bill paid), hide it.
+                // Better: Is the Ledger containing a payment for this specific final target date?
+                if (state.ledger.some(l => l.refId === bill.id && l.targetDate === dateStr && l.isPaid)) return true;
+            }
+            return false;
+        }
+
+        // 1. DASHBOARD
+        window.renderDashboard = function() {
+            const today = new Date();
+            const monthStr = toLocalISOString(today).slice(0, 7);
+            const txs = state.ledger.filter(t => t.date.startsWith(monthStr) && t.type !== 'defer'); 
             const inc = txs.filter(t => t.type === 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
             const exp = txs.filter(t => t.type !== 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+            
             document.getElementById('dash-net-cash').innerText = formatCurrency(inc - exp);
             document.getElementById('dash-total-paid').innerText = formatCurrency(exp);
+
+            // Comparison
             const cycles = getPayoutCycles(today);
             const activeSpending = state.ledger.filter(l => l.type !== 'income' && l.type !== 'defer' && new Date(l.date) >= cycles.active.start && new Date(l.date) <= cycles.active.end).reduce((s,l)=>s+(parseFloat(l.amount)||0),0);
             const prevSpending = state.ledger.filter(l => l.type !== 'income' && l.type !== 'defer' && new Date(l.date) >= cycles.prev.start && new Date(l.date) <= cycles.prev.end).reduce((s,l)=>s+(parseFloat(l.amount)||0),0);
             const diff = activeSpending - prevSpending;
             document.getElementById('cycle-comparison').innerHTML = `<span class="${diff>0?'text-red-400':'text-green-400'} font-bold">${diff>0?'+':''}${formatCurrency(diff)}</span> vs prev cycle`;
-            renderCycleCard('cycle-active', cycles.active); renderCycleCard('cycle-next', cycles.next);
-            let urgentCount = 0; state.bills.forEach(b => { if(isBillCompleted(b)) return; const occurrences = getBillOccurrencesInCycle(b, cycles.active); occurrences.forEach(occ => { if(!occ.isPaid && toLocalISOString(today) > occ.date) urgentCount++; }); });
+
+            renderCycleCard('cycle-active', cycles.active);
+            renderCycleCard('cycle-next', cycles.next);
+
+            let urgentCount = 0;
+            state.bills.forEach(b => {
+                if(isBillCompleted(b)) return;
+                const occurrences = getBillOccurrencesInCycle(b, cycles.active);
+                occurrences.forEach(occ => { if(!occ.isPaid && toLocalISOString(today) > occ.date) urgentCount++; });
+            });
             document.getElementById('dash-urgent-count').innerText = urgentCount;
+
             const historyList = txs.sort((a,b) => new Date(b.date) - new Date(a.date));
             document.getElementById('dashboard-history-list').innerHTML = historyList.length ? historyList.map(renderHistoryRow).join('') : `<tr><td colspan="5" class="text-center py-4 text-gray-600">No transactions this month.</td></tr>`;
+
+            // Chart
             renderChart(txs.filter(t => t.type !== 'income'));
         }
+
         function renderChart(expenses) {
             const ctx = document.getElementById('spendingChart').getContext('2d');
-            const categories = {}; expenses.forEach(e => { const cat = e.category || (e.type==='bill'?'Utilities':'Other'); categories[cat] = (categories[cat] || 0) + (parseFloat(e.amount)||0); });
+            const categories = {};
+            expenses.forEach(e => {
+                const cat = e.category || (e.type==='bill'?'Utilities':'Other'); // Default
+                categories[cat] = (categories[cat] || 0) + (parseFloat(e.amount)||0);
+            });
             if(spendChart) spendChart.destroy();
-            spendChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(categories), datasets: [{ data: Object.values(categories), backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#9ca3af', boxWidth: 12 } } } } });
+            spendChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{ data: Object.values(categories), backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#9ca3af', boxWidth: 12 } } } }
+            });
         }
+
         function renderCycleCard(idPrefix, cycle) {
             document.getElementById(`${idPrefix}-dates`).innerText = `${formatDate(cycle.start)} - ${formatDate(cycle.end)}`;
-            const incData = getCycleIncome(cycle); document.getElementById(`${idPrefix}-income`).innerText = formatCurrency(incData.amount);
+            
+            // Dynamic Income Display
+            const incData = getCycleIncome(cycle);
+            const incEl = document.getElementById(`${idPrefix}-income`);
+            incEl.innerText = formatCurrency(incData.amount);
             const incLbl = document.getElementById(`${idPrefix}-income-label`);
-            if(incLbl) { let html = ""; if(incData.isActual) html = `<span class="text-green-400"><i class="fa-solid fa-check-circle"></i> Actual Income</span>`; else html = `Est. Income`; if (incData.extra > 0) html += ` <span class="text-xs text-brand-400">(+${formatCurrency(incData.extra)} Receivables)</span>`; incLbl.innerHTML = html; }
-            const listEl = document.getElementById(`${idPrefix}-list`); let items = [];
-            state.bills.forEach(bill => { if(!isBillCompleted(bill)) items.push(...getBillOccurrencesInCycle(bill, cycle)); });
+            if(incLbl) {
+                if(incData.isActual) {
+                    incLbl.innerHTML = `<span class="text-green-400"><i class="fa-solid fa-check-circle"></i> Actual Income</span>`;
+                } else {
+                    incLbl.innerHTML = `Est. Income`;
+                }
+            }
+
+            const listEl = document.getElementById(`${idPrefix}-list`);
+            let items = [];
+            state.bills.forEach(bill => { 
+                if(!isBillCompleted(bill)) items.push(...getBillOccurrencesInCycle(bill, cycle)); 
+            });
             items.sort((a,b) => new Date(a.date) - new Date(b.date));
             const totalPending = items.filter(i => !i.isPaid).reduce((acc, curr) => acc + curr.amount, 0);
-            const pendingEl = document.getElementById(`${idPrefix}-pending`); if(pendingEl) pendingEl.innerText = formatCurrency(totalPending);
+            const pendingEl = document.getElementById(`${idPrefix}-pending`);
+            if(pendingEl) pendingEl.innerText = formatCurrency(totalPending);
+
             if(items.length === 0) listEl.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No bills due.</p>`;
-            else { listEl.innerHTML = items.map(item => `<div class="flex justify-between items-center text-sm p-2 rounded mb-1 ${item.isPaid ? 'opacity-40' : 'hover:bg-gray-800/50'}"><div class="flex items-center gap-2"><span class="text-gray-500 text-xs w-12 text-right">${formatDateShort(item.date)}</span><div class="flex flex-col"><span class="${item.isPaid ? 'text-gray-500 line-through' : 'text-gray-200'}">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div></div><div class="flex items-center gap-2"><span class="${item.isPaid ? 'text-gray-600' : 'text-gray-300'}">${formatCurrency(item.amount)}</span>${!item.isPaid ? `<button onclick="triggerTransaction('bill', '${item.id}', '${item.date}', ${item.amount}, '${item.name}', false, '', ${item.arrears}, '${item.date}')" class="text-brand-500 hover:text-white px-1"><i class="fa-solid fa-check"></i></button>` : '<i class="fa-solid fa-check text-green-500 text-xs"></i>'}</div></div>`).join(''); }
-        }
-        function getBillOccurrencesInCycle(bill, cycle) {
-            const res = []; const check = (d) => { let candidates = []; let date1 = new Date(cycle.start.getFullYear(), cycle.start.getMonth(), d); let date2 = new Date(cycle.end.getFullYear(), cycle.end.getMonth(), d); if (cycle.start.getMonth() > cycle.end.getMonth()) { date2 = new Date(cycle.end.getFullYear(), cycle.end.getMonth(), d); } if (date1 >= cycle.start && date1 <= cycle.end) candidates.push(date1); else if (date2 >= cycle.start && date2 <= cycle.end && date2.getTime() !== date1.getTime()) candidates.push(date2); candidates.forEach(dateObj => { if (bill.startDate) { const [sy, sm, sd] = bill.startDate.split('-').map(Number); if (dateObj < new Date(sy, sm-1, sd)) return; } if (bill.endDate) { const [ey, em, ed] = bill.endDate.split('-').map(Number); if (dateObj > new Date(ey, em-1, ed)) return; } const dateStr = toLocalISOString(dateObj); const status = getPaymentStatus(bill.id, dateStr); const totalRequired = bill.amount + (bill.arrears || 0); const remaining = totalRequired - status.paid; let counterStr = ''; if (bill.frequency !== 'one-time' && bill.startDate) { const [sy, sm, sd] = bill.startDate.split('-').map(Number); const start = new Date(sy, sm-1, sd); const monthsDiff = (dateObj.getFullYear() - start.getFullYear()) * 12 + (dateObj.getMonth() - start.getMonth()); let count = monthsDiff + 1; if (count < 1) count = 1; counterStr = bill.frequency === 'semi-monthly' ? `Month #${count}` : `Payment #${count}`; if(bill.endDate) { const [ey, em, ed] = bill.endDate.split('-').map(Number); const end = new Date(ey, em-1, ed); const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1; counterStr += ` of ${totalMonths}`; } } res.push({ id: bill.id, name: bill.name, amount: remaining < 0 ? 0 : remaining, totalRequired: totalRequired, arrears: bill.arrears || 0, date: dateStr, isPaid: remaining <= 0.1, counter: counterStr }); }); };
-            if (bill.frequency === 'monthly') check(bill.dueDay); else if (bill.frequency === 'semi-monthly') { check(bill.dueDay); check(bill.dueDay2); } else if (bill.frequency === 'one-time') { if(bill.startDate) { const [sy, sm, sd] = bill.startDate.split('-').map(Number); const d = new Date(sy, sm-1, sd); if(d >= cycle.start && d <= cycle.end) { const dateStr = bill.startDate; const status = getPaymentStatus(bill.id, dateStr); const remaining = bill.amount - status.paid; res.push({ id: bill.id, name: bill.name, amount: remaining, totalRequired: bill.amount, date: dateStr, isPaid: remaining<=0.1, arrears: 0, counter: 'Single Payment' }); } } } return res;
-        }
-        function renderBills() {
-            const listEl = document.getElementById('bills-list');
-            if(!state.bills.length) { listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills.</div>`; return; }
-            const today = new Date();
-            const cycles = getPayoutCycles(today); 
-            const search = document.getElementById('bills-search').value.toLowerCase();
-            const filter = document.getElementById('bills-filter').value;
-            const sort = document.getElementById('bills-sort').value;
-            let displayBills = state.bills.filter(b => {
-                if (isBillCompleted(b)) return false; 
-                const matchesSearch = b.name.toLowerCase().includes(search);
-                const matchesFilter = filter === 'all' || b.frequency === filter;
-                return matchesSearch && matchesFilter;
-            });
-            displayBills.sort((a, b) => {
-                if (sort === 'name') return a.name.localeCompare(b.name);
-                if (sort === 'amount-desc') return b.amount - a.amount;
-                if (sort === 'due-date') {
-                    const getNext = (bill) => {
-                        let occs = getBillOccurrencesInCycle(bill, cycles.active);
-                        if (!occs.length) occs = getBillOccurrencesInCycle(bill, cycles.next);
-                        if (occs.length > 0) { occs.sort((x, y) => new Date(x.date) - new Date(y.date)); return new Date(occs[0].date); }
-                        return new Date(9999, 11, 31); 
-                    }; return getNext(a) - getNext(b);
-                }
-                return 0;
-            });
-            if(displayBills.length === 0) { listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills match filters.</div>`; return; }
-            listEl.innerHTML = displayBills.map(bill => {
-                const arrears = bill.arrears || 0; const total = bill.amount + arrears;
-                const occurrences = getBillOccurrencesInCycle(bill, cycles.active);
-                let activeOccs = occurrences.length ? occurrences : getBillOccurrencesInCycle(bill, cycles.next);
-                activeOccs.sort((a,b) => new Date(a.date) - new Date(b.date));
-                let counterStr = activeOccs.length ? activeOccs[0].counter : '';
-                let actions = activeOccs.map(occ => {
-                    if(occ.isPaid) return `<button class="w-full py-2 bg-green-900/20 text-green-400 border border-green-900/50 rounded-lg text-xs font-bold mb-2 cursor-default"><i class="fa-solid fa-check"></i> Paid ${formatDateShort(occ.date)}</button>`;
-                    return `<div class="flex gap-1 mb-2"><button onclick="triggerTransaction('bill', '${bill.id}', '${occ.date}', ${occ.amount}, '${bill.name}', false, '', ${bill.arrears}, '${occ.date}')" class="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium">Pay ${formatCurrency(occ.amount)} <span class="text-[10px] opacity-75">(${formatDateShort(occ.date)})</span></button><button onclick="carryOverBill('${bill.id}', ${bill.amount})" title="Defer" class="w-10 bg-gray-800 text-orange-400 border border-gray-700 rounded-lg"><i class="fa-solid fa-forward"></i></button></div>`;
-                }).join('');
-                return `<div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col relative"><div class="flex justify-between items-start mb-4"><div><h4 class="font-bold text-white text-lg">${bill.name}</h4><div class="flex items-center gap-2 mt-1 text-xs text-gray-400"><span class="bg-gray-800 px-2 py-0.5 rounded uppercase">${bill.frequency}</span>${arrears > 0 ? `<span class="bg-red-900/30 text-red-400 px-2 py-0.5 rounded border border-red-900/50">Arrears: ${formatCurrency(arrears)}</span>` : ''}</div></div><div class="text-right"><p class="text-xl font-bold text-gray-200">${formatCurrency(total)}</p><button onclick="editBill('${bill.id}')" class="mt-1 text-xs text-brand-500 hover:text-brand-400">Edit</button></div></div>${actions}${counterStr ? `<div class="mt-auto pt-3 border-t border-gray-800 text-[10px] text-gray-500 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> ${counterStr}</div>` : ''}</div>`;
-            }).join('');
-        }
-
-        function renderReceivables() {
-            const el = document.getElementById('receivables-list');
-            if(!state.receivables.length) { el.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8 border border-dashed border-gray-800 rounded-xl">No receivables.</div>`; return; }
-            const list = [...state.receivables].sort((a,b) => (a.isReceived === b.isReceived) ? new Date(a.date) - new Date(b.date) : (a.isReceived ? 1 : -1));
-            el.innerHTML = list.map(r => {
-                const isPaid = r.isReceived;
-                return `
-                <div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col justify-between ${isPaid ? 'opacity-50' : ''}">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="font-bold text-white text-md ${isPaid?'line-through':''}">${r.name}</h4>
-                            <p class="text-xs text-gray-400">Exp: ${formatDateShort(r.date)}</p>
+            else {
+                listEl.innerHTML = items.map(item => `
+                    <div class="flex justify-between items-center text-sm p-2 rounded mb-1 ${item.isPaid ? 'opacity-40' : 'hover:bg-gray-800/50'}">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500 text-xs w-12 text-right">${formatDateShort(item.date)}</span>
+                            <div class="flex flex-col"><span class="${item.isPaid ? 'text-gray-500 line-through' : 'text-gray-200'}">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div>
                         </div>
-                        <button onclick="deleteReceivable('${r.id}')" class="text-xs text-gray-600 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <div class="mt-2 flex items-center justify-between">
-                         <span class="text-xl font-bold ${isPaid ? 'text-gray-500' : 'text-green-400'}">${formatCurrency(r.amount)}</span>
-                         ${!isPaid ? `<button onclick="triggerTransaction('income', '${r.id}', '${r.date}', ${r.amount}, 'Received: ${r.name}', false, '', 0, '', 'receivable')" class="bg-green-900/30 text-green-400 hover:bg-green-900/50 border border-green-900 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Mark Received</button>` : 
-                         `<span class="text-green-600 text-xs font-bold border border-green-900/30 px-2 py-1 rounded">RECEIVED</span>`}
-                    </div>
-                </div>`;
-            }).join('');
+                        <div class="flex items-center gap-2">
+                            <span class="${item.isPaid ? 'text-gray-600' : 'text-gray-300'}">${formatCurrency(item.amount)}</span>
+                            ${!item.isPaid ? `<button onclick="triggerTransaction('bill', '${item.id}', '${item.date}', ${item.amount}, '${item.name}', false, '', ${item.arrears}, '${item.date}')" class="text-brand-500 hover:text-white px-1"><i class="fa-solid fa-check"></i></button>` : '<i class="fa-solid fa-check text-green-500 text-xs"></i>'}
+                        </div>
+                    </div>`).join('');
+            }
         }
 
-        function renderGoals() {
+        function getBillOccurrencesInCycle(bill, cycle) {
+            const res = [];
+            const check = (d) => {
+                let candidates = [];
+                let date1 = new Date(cycle.start.getFullYear(), cycle.start.getMonth(), d);
+                let date2 = new Date(cycle.end.getFullYear(), cycle.end.getMonth(), d);
+                if (date1 >= cycle.start && date1 <= cycle.end) candidates.push(date1);
+                else if (date2 >= cycle.start && date2 <= cycle.end && date2.getTime() !== date1.getTime()) candidates.push(date2);
+                candidates.forEach(dateObj => {
+                    if (bill.startDate) { const [sy, sm, sd] = bill.startDate.split('-').map(Number); if (dateObj < new Date(sy, sm-1, sd)) return; }
+                    if (bill.endDate) { const [ey, em, ed] = bill.endDate.split('-').map(Number); if (dateObj > new Date(ey, em-1, ed)) return; }
+                    const dateStr = toLocalISOString(dateObj);
+                    const status = getPaymentStatus(bill.id, dateStr);
+                    const totalRequired = bill.amount + (bill.arrears || 0);
+                    const remaining = totalRequired - status.paid;
+                    let counterStr = '';
+                    if (bill.frequency !== 'one-time' && bill.startDate) {
+                        const [sy, sm, sd] = bill.startDate.split('-').map(Number);
+                        const start = new Date(sy, sm-1, sd);
+                        const monthsDiff = (dateObj.getFullYear() - start.getFullYear()) * 12 + (dateObj.getMonth() - start.getMonth());
+                        let count = monthsDiff + 1; if (count < 1) count = 1;
+                        counterStr = bill.frequency === 'semi-monthly' ? `Month #${count}` : `Payment #${count}`;
+                        if(bill.endDate) { const [ey, em, ed] = bill.endDate.split('-').map(Number); const end = new Date(ey, em-1, ed); const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1; counterStr += ` of ${totalMonths}`; }
+                    }
+                    res.push({ id: bill.id, name: bill.name, amount: remaining < 0 ? 0 : remaining, totalRequired: totalRequired, arrears: bill.arrears || 0, date: dateStr, isPaid: remaining <= 0.1, counter: counterStr });
+                });
+            };
+            if (bill.frequency === 'monthly') check(bill.dueDay);
+            else if (bill.frequency === 'semi-monthly') { check(bill.dueDay); check(bill.dueDay2); }
+            else if (bill.frequency === 'one-time') { if(bill.startDate) { const [sy, sm, sd] = bill.startDate.split('-').map(Number); const d = new Date(sy, sm-1, sd); if(d >= cycle.start && d <= cycle.end) { const dateStr = bill.startDate; const status = getPaymentStatus(bill.id, dateStr); const remaining = bill.amount - status.paid; res.push({ id: bill.id, name: bill.name, amount: remaining, totalRequired: bill.amount, date: dateStr, isPaid: remaining<=0.1, arrears: 0, counter: 'Single Payment' }); } } }
+            return res;
+        }
+
+        // 2. GOALS
+        window.renderGoals = function() {
             const el = document.getElementById('goals-list');
             if(!state.goals.length) { el.innerHTML = `<div class="col-span-2 text-center text-gray-500 py-8">No goals set.</div>`; return; }
             el.innerHTML = state.goals.map(g => {
@@ -1000,13 +795,245 @@
                 </div>`;
             }).join('');
         }
+        window.openGoalModal = (id) => {
+            const g = id ? state.goals.find(x => x.id === id) : null;
+            document.getElementById('goal-id').value = id || '';
+            document.getElementById('goal-name').value = g ? g.name : '';
+            document.getElementById('goal-target').value = g ? g.target : '';
+            document.getElementById('goal-current').value = g ? g.current : '0';
+            document.getElementById('goal-modal-title').innerText = id ? 'Edit Goal' : 'New Goal';
+            openModal('modal-goal');
+        }
+        window.saveGoal = async () => {
+            const id = document.getElementById('goal-id').value;
+            const d = { name: document.getElementById('goal-name').value, target: parseFloat(document.getElementById('goal-target').value)||0, current: parseFloat(document.getElementById('goal-current').value)||0 };
+            if(!d.name) return;
+            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'goals');
+            if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d);
+            closeModal('modal-goal');
+        }
+        window.updateGoalAmt = async (id, curr, add) => { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id), { current: curr + add }, {merge:true}); }
+        window.deleteGoal = async (id) => { if(confirm("Delete goal?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id)); }
 
-        function renderSettingsPayouts() {
+        // 3. BILLS
+        window.renderBills = function() {
+            const listEl = document.getElementById('bills-list');
+            if(!state.bills.length) { listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills.</div>`; return; }
+            const today = new Date();
+            const cycles = getPayoutCycles(today); 
+            const search = document.getElementById('bills-search').value.toLowerCase();
+            const filter = document.getElementById('bills-filter').value;
+            const sort = document.getElementById('bills-sort').value;
+            
+            let displayBills = state.bills.filter(b => {
+                if (isBillCompleted(b)) return false; // Hide completed bills
+                const matchesSearch = b.name.toLowerCase().includes(search);
+                const matchesFilter = filter === 'all' || b.frequency === filter;
+                return matchesSearch && matchesFilter;
+            });
+            
+            displayBills.sort((a, b) => {
+                if (sort === 'name') return a.name.localeCompare(b.name);
+                if (sort === 'amount-desc') return b.amount - a.amount;
+                if (sort === 'due-date') {
+                    const getNext = (bill) => {
+                        let occs = getBillOccurrencesInCycle(bill, cycles.active);
+                        if (!occs.length) occs = getBillOccurrencesInCycle(bill, cycles.next);
+                        if (occs.length > 0) { occs.sort((x, y) => new Date(x.date) - new Date(y.date)); return new Date(occs[0].date); }
+                        return new Date(9999, 11, 31); 
+                    }; return getNext(a) - getNext(b);
+                }
+                return 0;
+            });
+            
+            if(displayBills.length === 0) {
+                listEl.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-xl">No bills match filters.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = displayBills.map(bill => {
+                const arrears = bill.arrears || 0; const total = bill.amount + arrears;
+                // One-time bills handled by isBillCompleted check above
+                const occurrences = getBillOccurrencesInCycle(bill, cycles.active);
+                let activeOccs = occurrences.length ? occurrences : getBillOccurrencesInCycle(bill, cycles.next);
+                activeOccs.sort((a,b) => new Date(a.date) - new Date(b.date));
+                let counterStr = activeOccs.length ? activeOccs[0].counter : '';
+                let actions = activeOccs.map(occ => {
+                    if(occ.isPaid) return `<button class="w-full py-2 bg-green-900/20 text-green-400 border border-green-900/50 rounded-lg text-xs font-bold mb-2 cursor-default"><i class="fa-solid fa-check"></i> Paid ${formatDateShort(occ.date)}</button>`;
+                    return `<div class="flex gap-1 mb-2"><button onclick="triggerTransaction('bill', '${bill.id}', '${occ.date}', ${occ.amount}, '${bill.name}', false, '', ${bill.arrears}, '${occ.date}')" class="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium">Pay ${formatCurrency(occ.amount)} <span class="text-[10px] opacity-75">(${formatDateShort(occ.date)})</span></button><button onclick="carryOverBill('${bill.id}', ${bill.amount})" title="Defer" class="w-10 bg-gray-800 text-orange-400 border border-gray-700 rounded-lg"><i class="fa-solid fa-forward"></i></button></div>`;
+                }).join('');
+                return `<div class="glass-panel p-5 rounded-xl border border-gray-800 flex flex-col relative"><div class="flex justify-between items-start mb-4"><div><h4 class="font-bold text-white text-lg">${bill.name}</h4><div class="flex items-center gap-2 mt-1 text-xs text-gray-400"><span class="bg-gray-800 px-2 py-0.5 rounded uppercase">${bill.frequency}</span>${arrears > 0 ? `<span class="bg-red-900/30 text-red-400 px-2 py-0.5 rounded border border-red-900/50">Arrears: ${formatCurrency(arrears)}</span>` : ''}</div></div><div class="text-right"><p class="text-xl font-bold text-gray-200">${formatCurrency(total)}</p><button onclick="editBill('${bill.id}')" class="mt-1 text-xs text-brand-500 hover:text-brand-400">Edit</button></div></div>${actions}${counterStr ? `<div class="mt-auto pt-3 border-t border-gray-800 text-[10px] text-gray-500 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> ${counterStr}</div>` : ''}</div>`;
+            }).join('');
+        }
+
+        window.renderForecast = function() {
+            const container = document.getElementById('forecast-container'); container.innerHTML = '';
+            let pointer = new Date(); const activeStart = getPayoutCycles(pointer).active.start; pointer = activeStart;
+            let tempCycles = []; for(let i=0; i<6; i++) { const cycles = getPayoutCycles(pointer); if(!tempCycles.some(c => c.start.getTime() === cycles.active.start.getTime())) tempCycles.push(cycles.active); pointer = new Date(cycles.active.end); pointer.setDate(pointer.getDate() + 2); }
+            tempCycles.forEach(cycle => {
+                const payoutDateStr = formatDate(cycle.start); 
+                let items = []; 
+                state.bills.forEach(b => {
+                    if(!isBillCompleted(b)) items.push(...getBillOccurrencesInCycle(b, cycle));
+                }); 
+                items.sort((a,b) => new Date(a.date) - new Date(b.date));
+                
+                // Calculate Dynamic Income for Forecast Card
+                const incData = getCycleIncome(cycle);
+                const totalOut = items.reduce((s,i) => s + i.amount, 0); 
+                const income = incData.amount; 
+                const net = income - totalOut;
+                
+                const incomeClass = incData.isActual ? "text-green-400 font-bold" : "text-gray-400";
+                const incomeLabel = incData.isActual ? "Actual Income" : "Est. Income";
+
+                container.innerHTML += `<div class="glass-panel rounded-2xl border border-gray-800 flex flex-col h-full relative overflow-hidden"><div class="p-4 border-b border-gray-800 bg-gray-900/50"><div class="flex justify-between items-center mb-1"><h4 class="font-bold text-white text-sm">Payout: ${payoutDateStr}</h4><span class="text-xs ${net>=0?'text-green-400':'text-red-400'}">${formatCurrency(net)}</span></div><div class="flex justify-between text-[10px] text-gray-500"><span>Range: ${formatDateShort(cycle.start)} - ${formatDateShort(cycle.end)}</span></div></div><div class="flex-1 overflow-y-auto p-4 space-y-2"><div class="flex justify-between text-xs mb-2 pb-2 border-b border-gray-800"><span class="${incomeClass}">${incomeLabel}</span><span class="${incomeClass}">${formatCurrency(income)}</span></div>${items.map(item => `<div class="flex items-center justify-between p-2 rounded ${item.isPaid ? 'opacity-30' : 'bg-gray-800/40'} text-xs"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-red-500"></div><div class="flex flex-col"><span class="truncate w-24">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div></div><div class="text-right"><div class="text-gray-300">${formatCurrency(item.amount)}</div><div class="text-[9px] text-gray-600">${formatDateShort(item.date)}</div></div></div>`).join('')}</div></div>`;
+            });
+        }
+
+        window.triggerTransaction = function(type, refId, date, amt, title, isPaid, ledgerId, arrears, targetDate) {
+            if(isPaid) return;
+            document.getElementById('trans-modal-title').innerText = type==='income'?'Income':'Pay Bill';
+            document.getElementById('trans-modal-desc').innerText = title;
+            document.getElementById('trans-type').value = type;
+            document.getElementById('trans-ref-id').value = refId;
+            document.getElementById('trans-date').value = date; 
+            document.getElementById('trans-target-date').value = targetDate || date;
+            document.getElementById('trans-target-display').value = targetDate || date;
+            document.getElementById('trans-amount').value = amt;
+            document.getElementById('trans-expected-amt').value = amt;
+            document.getElementById('trans-arrears-amt').value = arrears||0;
+            openModal('modal-transaction');
+        }
+
+        window.confirmTransaction = async function() {
+            const type = document.getElementById('trans-type').value;
+            const refId = document.getElementById('trans-ref-id').value;
+            const paidAmount = parseFloat(document.getElementById('trans-amount').value);
+            const expectedAmount = parseFloat(document.getElementById('trans-expected-amt').value);
+            const date = document.getElementById('trans-date').value;
+            const targetDateStr = document.getElementById('trans-target-date').value;
+            
+            if(!paidAmount || !date) return;
+
+            try {
+                let description = document.getElementById('trans-modal-desc').innerText.replace('Confirming: ', '');
+                if (type === 'bill' && paidAmount < expectedAmount) {
+                    description += ` (Partial)`;
+                    const diff = expectedAmount - paidAmount;
+                    // strict date check
+                    if (date > targetDateStr) { 
+                        if(confirm(`Due date (${targetDateStr}) has passed.\nPayment Date: ${date}\nRemaining balance: ${formatCurrency(diff)}.\n\nDefer to Arrears?`)) {
+                            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: diff }, { merge: true });
+                        }
+                    }
+                } else if (type === 'bill' && paidAmount >= expectedAmount) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: 0 }, { merge: true });
+                }
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger'), {
+                    type, amount: paidAmount, date, targetDate: targetDateStr, refId, description, isPaid: true, category: 'Bill', createdAt: new Date().toISOString()
+                });
+                closeModal('modal-transaction');
+            } catch(e) { console.error(e); alert('Error saving'); }
+        }
+
+        window.carryOverBill = async function(id, baseAmt) {
+            if(!confirm("Defer payment?")) return;
+            const b = state.bills.find(x => x.id === id);
+            const newArr = (b.arrears||0) + baseAmt;
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', id), { arrears: newArr }, { merge: true });
+        }
+
+        window.exportData = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "fintrack_backup.json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        window.setExpenseType = (t) => {
+            document.getElementById('expense-type').value = t;
+            const bE = document.getElementById('btn-type-expense'), bI = document.getElementById('btn-type-income');
+            if(t==='manual'){ bE.classList.add('bg-gray-700','text-white'); bI.classList.remove('bg-gray-700','text-white'); }
+            else { bI.classList.add('bg-gray-700','text-white'); bE.classList.remove('bg-gray-700','text-white'); }
+        }
+        window.openExpenseModal = () => {
+             document.getElementById('expense-id').value=''; setExpenseType('manual');
+             document.getElementById('expense-amount').value=''; document.getElementById('expense-desc').value='';
+             document.getElementById('expense-date').value = toLocalISOString(new Date());
+             openModal('modal-expense');
+        }
+        window.saveExpense = async () => {
+            const id = document.getElementById('expense-id').value;
+            const d = {
+                type: document.getElementById('expense-type').value,
+                description: document.getElementById('expense-desc').value,
+                amount: parseFloat(document.getElementById('expense-amount').value),
+                date: document.getElementById('expense-date').value,
+                category: document.getElementById('expense-category').value,
+                createdAt: new Date().toISOString()
+            };
+            if(!d.amount) return;
+            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger');
+            if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d);
+            closeModal('modal-expense');
+        }
+        window.deleteTransaction = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger', id)); }
+
+        window.openBillModal = () => {
+            document.getElementById('bill-id').value=''; document.getElementById('bill-name').value='';
+            document.getElementById('bill-amount').value=''; document.getElementById('bill-day').value='';
+            document.getElementById('bill-freq').value='monthly'; toggleBillFields();
+            document.getElementById('bill-arrears').value=''; 
+            openModal('modal-bill');
+        }
+        window.saveBill = async () => {
+            const id = document.getElementById('bill-id').value;
+            const d = {
+                name: document.getElementById('bill-name').value,
+                amount: parseFloat(document.getElementById('bill-amount').value),
+                arrears: parseFloat(document.getElementById('bill-arrears').value) || 0, 
+                frequency: document.getElementById('bill-freq').value,
+                dueDay: parseInt(document.getElementById('bill-day').value),
+                dueDay2: parseInt(document.getElementById('bill-day-2').value)||null,
+                startDate: document.getElementById('bill-start-date').value,
+                endDate: document.getElementById('bill-end-date').value,
+                category: document.getElementById('bill-category').value
+            };
+            if(!d.name || !d.amount) return;
+            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bills');
+            if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d);
+            closeModal('modal-bill');
+        }
+        window.editBill = (id) => {
+            const b = state.bills.find(x => x.id === id);
+            document.getElementById('bill-id').value=b.id; document.getElementById('bill-name').value=b.name;
+            document.getElementById('bill-amount').value=b.amount; document.getElementById('bill-freq').value=b.frequency;
+            document.getElementById('bill-arrears').value=b.arrears || 0; 
+            document.getElementById('bill-day').value=b.dueDay; document.getElementById('bill-day-2').value=b.dueDay2||'';
+            document.getElementById('bill-start-date').value=b.startDate||''; document.getElementById('bill-end-date').value=b.endDate||'';
+            if(b.category) document.getElementById('bill-category').value = b.category;
+            toggleBillFields(); document.getElementById('btn-delete-bill').classList.remove('hidden');
+            openModal('modal-bill');
+        }
+        window.deleteBill = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', document.getElementById('bill-id').value)); closeModal('modal-bill'); } }
+        window.toggleBillFields = () => {
+            const f = document.getElementById('bill-freq').value;
+            const f2 = document.getElementById('field-due-2');
+            if(f==='semi-monthly') f2.classList.remove('hidden'); else f2.classList.add('hidden');
+        }
+
+        window.openSettingsModal = () => {
+            document.getElementById('setting-income').value = state.settings.income;
+            document.getElementById('setting-day1').value = state.settings.day1;
+            document.getElementById('setting-day2').value = state.settings.day2;
+            // Render Quick Actions
             const today = new Date();
             const monthStr = today.toISOString().slice(0, 7);
             const statusContainer = document.getElementById('settings-payout-status');
-            if (!statusContainer) return;
-
             const payoutPerCycle = state.settings.income / 2;
             const actionsHtml = [0, 1].map(idx => {
                 const idBase = `income_${monthStr}_${idx}`;
@@ -1020,80 +1047,46 @@
                 }
             }).join('');
             statusContainer.innerHTML = actionsHtml;
+            openModal('modal-settings');
+        }
+        window.saveSettings = async () => {
+            const d = {
+                income: parseFloat(document.getElementById('setting-income').value)||0,
+                day1: parseInt(document.getElementById('setting-day1').value)||15,
+                day2: parseInt(document.getElementById('setting-day2').value)||30
+            };
+            const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
+            if(state.settings.id) await setDoc(doc(c, state.settings.id), d, {merge:true}); else await addDoc(c, d);
+            closeModal('modal-settings');
         }
 
-        function renderForecast() {
-            const container = document.getElementById('forecast-container');
-            container.innerHTML = '';
-            let pointer = new Date(); const activeStart = getPayoutCycles(pointer).active.start; pointer = activeStart;
-            let tempCycles = [];
-            for(let i=0; i<6; i++) { const cycles = getPayoutCycles(pointer); if(!tempCycles.some(c => c.start.getTime() === cycles.active.start.getTime())) tempCycles.push(cycles.active); pointer = new Date(cycles.active.end); pointer.setDate(pointer.getDate() + 2); }
-            
-            tempCycles.forEach(cycle => {
-                const payoutDateStr = formatDate(cycle.start); 
-                let items = []; 
-                state.bills.forEach(b => { if(!isBillCompleted(b)) items.push(...getBillOccurrencesInCycle(b, cycle)); }); 
-                items.sort((a,b) => new Date(a.date) - new Date(b.date));
-                
-                const incData = getCycleIncome(cycle);
-                const totalOut = items.reduce((s,i) => s + i.amount, 0); 
-                const income = incData.amount; 
-                const net = income - totalOut;
-                
-                const incomeClass = incData.isActual ? "text-green-400 font-bold" : "text-gray-400";
-                let incomeLabel = incData.isActual ? "Actual Income" : "Est. Income";
-                if(incData.extra > 0) incomeLabel += ` (+${formatCurrency(incData.extra)})`;
-
-                container.innerHTML += `<div class="glass-panel rounded-2xl border border-gray-800 flex flex-col h-full relative overflow-hidden"><div class="p-4 border-b border-gray-800 bg-gray-900/50"><div class="flex justify-between items-center mb-1"><h4 class="font-bold text-white text-sm">Payout: ${payoutDateStr}</h4><span class="text-xs ${net>=0?'text-green-400':'text-red-400'}">${formatCurrency(net)}</span></div><div class="flex justify-between text-[10px] text-gray-500"><span>Range: ${formatDateShort(cycle.start)} - ${formatDateShort(cycle.end)}</span></div></div><div class="flex-1 overflow-y-auto p-4 space-y-2"><div class="flex justify-between text-xs mb-2 pb-2 border-b border-gray-800"><span class="${incomeClass}">${incomeLabel}</span><span class="${incomeClass}">${formatCurrency(income)}</span></div>${items.map(item => `<div class="flex items-center justify-between p-2 rounded ${item.isPaid ? 'opacity-30' : 'bg-gray-800/40'} text-xs"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-red-500"></div><div class="flex flex-col"><span class="truncate w-24">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div></div><div class="text-right"><div class="text-gray-300">${formatCurrency(item.amount)}</div><div class="text-[9px] text-gray-600">${formatDateShort(item.date)}</div></div></div>`).join('')}</div></div>`;
-            });
+        window.openModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        window.closeModal = (id) => { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        window.switchTab = (t) => {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
+            document.getElementById('view-'+t).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('text-brand-500','bg-gray-800'));
+            document.getElementById('tab-'+t).classList.add('text-brand-500','bg-gray-800');
+            if(t==='forecast') renderForecast();
         }
-        
-        function exportStatement(type) { const cycles = getPayoutCycles(new Date()); const cycle = type === 'active' ? cycles.active : cycles.prev; const startDate = cycle.start; const endDate = cycle.end; const rangeStr = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`; const incData = getCycleIncome(cycle); const totalIncome = incData.amount; const expenses = state.ledger.filter(l => { const d = new Date(l.date); return l.type !== 'income' && l.type !== 'defer' && d >= startDate && d <= endDate; }); const totalExpenses = expenses.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0); let pendingItems = []; let totalPending = 0; if(type === 'active') { state.bills.forEach(bill => { if(!isBillCompleted(bill)) pendingItems.push(...getBillOccurrencesInCycle(bill, cycle)); }); pendingItems = pendingItems.filter(i => !i.isPaid); totalPending = pendingItems.reduce((acc, curr) => acc + curr.amount, 0); } const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(20); doc.text("FinTrack Financial Statement", 14, 22); doc.setFontSize(10); doc.setTextColor(100); doc.text(`Period: ${type === 'active' ? 'Active Cycle' : 'Previous Cycle'} (${rangeStr})`, 14, 30); doc.autoTable({ startY: 40, head: [['Summary', 'Amount']], body: [ ['Total Income (Est + Received)', formatCurrency(totalIncome)], ['Total Expenses (Paid)', formatCurrency(totalExpenses)], ['Net Cash Flow', formatCurrency(totalIncome - totalExpenses)], ...(type === 'active' ? [['Pending Obligations', formatCurrency(totalPending)], ['Projected Balance', formatCurrency(totalIncome - totalExpenses - totalPending)]] : []) ], theme: 'striped', headStyles: { fillColor: [59, 130, 246] } }); const rows = expenses.map(e => [e.date, e.category || 'Expense', e.description, formatCurrency(e.amount)]); if(type === 'active' && pendingItems.length > 0) { pendingItems.forEach(p => rows.push([p.date, 'Pending Bill', `${p.name} (Due)`, `${formatCurrency(p.amount)}`])); } doc.text("Transaction Details", 14, doc.lastAutoTable.finalY + 10); doc.autoTable({ startY: doc.lastAutoTable.finalY + 15, head: [['Date', 'Category', 'Description', 'Amount']], body: rows, theme: 'grid', styles: { fontSize: 8 }, headStyles: { fillColor: [31, 41, 55] } }); doc.save(`FinTrack_Statement_${type}_${rangeStr}.pdf`); }
-        function setExpenseType(t) { document.getElementById('expense-type').value = t; const bE = document.getElementById('btn-type-expense'), bI = document.getElementById('btn-type-income'); if(t==='manual'){ bE.classList.add('bg-gray-700','text-white'); bI.classList.remove('bg-gray-700','text-white'); } else { bI.classList.add('bg-gray-700','text-white'); bE.classList.remove('bg-gray-700','text-white'); } }
-        function openExpenseModal() { document.getElementById('expense-id').value=''; setExpenseType('manual'); document.getElementById('expense-amount').value=''; document.getElementById('expense-desc').value=''; document.getElementById('expense-date').value = toLocalISOString(new Date()); openModal('modal-expense'); }
-        async function saveExpense() { const id = document.getElementById('expense-id').value; const d = { type: document.getElementById('expense-type').value, description: document.getElementById('expense-desc').value, amount: parseFloat(document.getElementById('expense-amount').value), date: document.getElementById('expense-date').value, category: document.getElementById('expense-category').value, createdAt: new Date().toISOString() }; if(!d.amount) return; const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger'); if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d); closeModal('modal-expense'); }
-        async function deleteTransaction(id) { if(confirm("Delete?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger', id)); }
-        function openBillModal() { document.getElementById('bill-id').value=''; document.getElementById('bill-name').value=''; document.getElementById('bill-amount').value=''; document.getElementById('bill-day').value=''; document.getElementById('bill-freq').value='monthly'; toggleBillFields(); document.getElementById('bill-arrears').value=''; openModal('modal-bill'); }
-        async function saveBill() { const id = document.getElementById('bill-id').value; const d = { name: document.getElementById('bill-name').value, amount: parseFloat(document.getElementById('bill-amount').value), arrears: parseFloat(document.getElementById('bill-arrears').value) || 0, frequency: document.getElementById('bill-freq').value, dueDay: parseInt(document.getElementById('bill-day').value), dueDay2: parseInt(document.getElementById('bill-day-2').value)||null, startDate: document.getElementById('bill-start-date').value, endDate: document.getElementById('bill-end-date').value, category: document.getElementById('bill-category').value }; if(!d.name || !d.amount) return; const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bills'); if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d); closeModal('modal-bill'); }
-        function editBill(id) { const b = state.bills.find(x => x.id === id); document.getElementById('bill-id').value=b.id; document.getElementById('bill-name').value=b.name; document.getElementById('bill-amount').value=b.amount; document.getElementById('bill-freq').value=b.frequency; document.getElementById('bill-arrears').value=b.arrears || 0; document.getElementById('bill-day').value=b.dueDay; document.getElementById('bill-day-2').value=b.dueDay2||''; document.getElementById('bill-start-date').value=b.startDate||''; document.getElementById('bill-end-date').value=b.endDate||''; if(b.category) document.getElementById('bill-category').value = b.category; toggleBillFields(); document.getElementById('btn-delete-bill').classList.remove('hidden'); openModal('modal-bill'); }
-        async function deleteBill() { if(confirm("Delete?")) { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', document.getElementById('bill-id').value)); closeModal('modal-bill'); } }
-        function toggleBillFields() { const f = document.getElementById('bill-freq').value; const f2 = document.getElementById('field-due-2'); if(f==='semi-monthly') f2.classList.remove('hidden'); else f2.classList.add('hidden'); }
-        function openSettingsModal() { document.getElementById('setting-income').value = state.settings.income; document.getElementById('setting-day1').value = state.settings.day1; document.getElementById('setting-day2').value = state.settings.day2; renderSettingsPayouts(); openModal('modal-settings'); }
-        async function saveSettings() { const d = { income: parseFloat(document.getElementById('setting-income').value)||0, day1: parseInt(document.getElementById('setting-day1').value)||15, day2: parseInt(document.getElementById('setting-day2').value)||30 }; const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'settings'); if(state.settings.id) await setDoc(doc(c, state.settings.id), d, {merge:true}); else await addDoc(c, d); closeModal('modal-settings'); }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-        function switchTab(t) { document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden')); document.getElementById('view-'+t).classList.remove('hidden'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('text-brand-500','bg-gray-800')); document.getElementById('tab-'+t).classList.add('text-brand-500','bg-gray-800'); if(t==='forecast') renderForecast(); if(t==='receivables') renderReceivables(); }
-        function triggerTransaction(type, refId, date, amt, title, isPaid, ledgerId, arrears, targetDate, originType) { if(isPaid) return; document.getElementById('trans-modal-title').innerText = type==='income'?'Income':'Pay Bill'; document.getElementById('trans-modal-desc').innerText = title; document.getElementById('trans-type').value = type; document.getElementById('trans-ref-id').value = refId; document.getElementById('trans-date').value = date; document.getElementById('trans-origin-type').value = originType || ''; document.getElementById('trans-target-date').value = targetDate || date; document.getElementById('trans-target-display').value = targetDate || date; document.getElementById('trans-amount').value = amt; document.getElementById('trans-expected-amt').value = amt; document.getElementById('trans-arrears-amt').value = arrears||0; openModal('modal-transaction'); }
-        async function confirmTransaction() { const type = document.getElementById('trans-type').value; const refId = document.getElementById('trans-ref-id').value; const originType = document.getElementById('trans-origin-type').value; const paidAmount = parseFloat(document.getElementById('trans-amount').value); const expectedAmount = parseFloat(document.getElementById('trans-expected-amt').value); const date = document.getElementById('trans-date').value; const targetDateStr = document.getElementById('trans-target-date').value; if(!paidAmount || !date) return; try { let description = document.getElementById('trans-modal-desc').innerText.replace('Confirming: ', ''); if (type === 'bill' && paidAmount < expectedAmount) { description += ` (Partial)`; const diff = expectedAmount - paidAmount; if (date > targetDateStr) { if(confirm(`Due date (${targetDateStr}) has passed.\nPayment Date: ${date}\nRemaining balance: ${formatCurrency(diff)}.\n\nDefer to Arrears?`)) { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: diff }, { merge: true }); } } } else if (type === 'bill' && paidAmount >= expectedAmount) { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: 0 }, { merge: true }); } if(type === 'income' && originType === 'receivable') { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables', refId), { isReceived: true }, { merge: true }); } await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger'), { type, amount: paidAmount, date, targetDate: targetDateStr, refId, description, isPaid: true, category: type==='bill'?'Bill':'Income', createdAt: new Date().toISOString() }); closeModal('modal-transaction'); } catch(e) { console.error(e); alert('Error saving'); } }
-        async function carryOverBill(id, baseAmt) { if(!confirm("Defer payment?")) return; const b = state.bills.find(x => x.id === id); const newArr = (b.arrears||0) + baseAmt; await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', id), { arrears: newArr }, { merge: true }); }
-        function openReceivableModal() { document.getElementById('recv-id').value = ''; document.getElementById('recv-name').value = ''; document.getElementById('recv-amount').value = ''; document.getElementById('recv-date').value = toLocalISOString(new Date()); openModal('modal-receivable'); }
-        async function saveReceivable() { const id = document.getElementById('recv-id').value; const d = { name: document.getElementById('recv-name').value, amount: parseFloat(document.getElementById('recv-amount').value)||0, date: document.getElementById('recv-date').value, isReceived: false }; if(!d.name || !d.amount) return; const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables'); if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d); closeModal('modal-receivable'); }
-        async function deleteReceivable(id) { if(confirm("Delete this receivable?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'receivables', id)); }
-        function openGoalModal(id) { const g = id ? state.goals.find(x => x.id === id) : null; document.getElementById('goal-id').value = id || ''; document.getElementById('goal-name').value = g ? g.name : ''; document.getElementById('goal-target').value = g ? g.target : ''; document.getElementById('goal-current').value = g ? g.current : '0'; document.getElementById('goal-modal-title').innerText = id ? 'Edit Goal' : 'New Goal'; openModal('modal-goal'); }
-        async function saveGoal() { const id = document.getElementById('goal-id').value; const d = { name: document.getElementById('goal-name').value, target: parseFloat(document.getElementById('goal-target').value)||0, current: parseFloat(document.getElementById('goal-current').value)||0 }; if(!d.name) return; const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'goals'); if(id) await setDoc(doc(c, id), d, {merge:true}); else await addDoc(c, d); closeModal('modal-goal'); }
-        async function updateGoalAmt(id, curr, add) { await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id), { current: curr + add }, {merge:true}); }
-        async function deleteGoal(id) { if(confirm("Delete goal?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id)); }
-        function renderHistoryRow(t) { const isInc = t.type==='income', isBill = t.type==='bill'; const color = isInc ? 'text-green-400' : 'text-red-400'; const badge = isInc ? 'bg-green-900/30 text-green-400' : (isBill ? 'bg-indigo-900/30 text-indigo-400' : 'bg-orange-900/30 text-orange-400'); return `<tr class="hover:bg-gray-900/50 border-b border-gray-800 last:border-0"><td class="px-4 py-3 font-mono text-xs text-gray-500">${t.date}</td><td class="px-4 py-3"><span class="px-2 py-1 rounded text-[10px] uppercase font-bold bg-gray-800 text-gray-400">${t.category||'-'}</span></td><td class="px-4 py-3 text-white text-sm">${t.description}</td><td class="px-4 py-3 text-right font-medium ${color}">${isInc?'+':'-'}${formatCurrency(t.amount)}</td><td class="px-4 py-3 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-gray-600 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`; }
+        window.renderHistoryRow = (t) => {
+            const isInc = t.type==='income', isBill = t.type==='bill';
+            const color = isInc ? 'text-green-400' : 'text-red-400';
+            const badge = isInc ? 'bg-green-900/30 text-green-400' : (isBill ? 'bg-indigo-900/30 text-indigo-400' : 'bg-orange-900/30 text-orange-400');
+            return `
+            <tr class="hover:bg-gray-900/50 border-b border-gray-800 last:border-0">
+                <td class="px-4 py-3 font-mono text-xs text-gray-500">${t.date}</td>
+                <td class="px-4 py-3"><span class="px-2 py-1 rounded text-[10px] uppercase font-bold bg-gray-800 text-gray-400">${t.category||'-'}</span></td>
+                <td class="px-4 py-3 text-white text-sm">${t.description}</td>
+                <td class="px-4 py-3 text-right font-medium ${color}">${isInc?'+':'-'}${formatCurrency(t.amount)}</td>
+                <td class="px-4 py-3 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-gray-600 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>`;
+        }
         function formatCurrency(v) { return new Intl.NumberFormat('en-PH', {style:'currency', currency:'PHP'}).format(v); }
         function formatDate(d) { return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
         function formatDateShort(iso) { const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()}`; }
 
-        // Assign functions to window
-        Object.assign(window, {
-            toggleAuthMode, handleEmailAuth, handleGoogleSignIn, completeGoogleSetup, signOutAuth,
-            openAccountModal, changePassword, renderBills, renderReceivables, renderGoals,
-            renderSettingsPayouts, renderForecast, triggerTransaction, confirmTransaction,
-            carryOverBill, openReceivableModal, saveReceivable, deleteReceivable, openGoalModal,
-            saveGoal, updateGoalAmt, deleteGoal, switchTab, setExpenseType, openExpenseModal,
-            saveExpense, deleteTransaction, openBillModal, saveBill, editBill, deleteBill,
-            toggleBillFields, openSettingsModal, saveSettings, openModal, closeModal,
-            renderHistoryRow, exportStatement
-        });
-
-        // Initialize View
-        toggleAuthMode('login');
-        initAuth();
-        switchTab('dashboard');
+        window.switchTab('dashboard');
     </script>
 </body>
 </html>

@@ -47,6 +47,20 @@
         
         .cycle-active { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); } 
         .cycle-next { border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.05); }
+        
+        /* Ad Container Styling */
+        .ad-container {
+            width: 100%;
+            min-height: 90px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
@@ -61,7 +75,9 @@
                     </div>
                     <span class="font-bold text-xl tracking-tight">FinTrack</span>
                 </div>
-                <div id="auth-section" class="flex items-center gap-4"></div>
+                <div id="auth-section" class="flex items-center gap-3">
+                    <!-- Populated by JS -->
+                </div>
             </div>
         </div>
     </nav>
@@ -216,7 +232,7 @@
             </div>
         </div>
 
-        <!-- RECEIVABLES VIEW (NEW) -->
+        <!-- RECEIVABLES VIEW -->
         <div id="view-receivables" class="view-section hidden space-y-6">
             <!-- Content Value Add -->
             <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6">
@@ -366,13 +382,43 @@
 
     <!-- Login -->
     <div id="login-screen" class="fixed inset-0 bg-gray-950 flex flex-col items-center justify-start z-50 hidden overflow-y-auto pt-10 pb-10">
-        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8 flex-shrink-0">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-gray-800 shadow-2xl mb-8 flex-shrink-0 relative">
+            
             <div class="w-16 h-16 bg-brand-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-500"><i class="fa-solid fa-wallet text-3xl"></i></div>
-            <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
-            <button id="btn-google-login" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group mt-8">
+            
+            <!-- Auth Toggle -->
+            <div class="flex bg-gray-900/50 rounded-lg p-1 mb-6 border border-gray-700">
+                <button onclick="toggleAuthMode('login')" id="btn-mode-login" class="flex-1 py-2 text-sm font-bold rounded-md bg-gray-700 text-white transition-all">Log In</button>
+                <button onclick="toggleAuthMode('signup')" id="btn-mode-signup" class="flex-1 py-2 text-sm font-bold rounded-md text-gray-400 hover:text-white transition-all">Sign Up</button>
+            </div>
+
+            <!-- Email/Pass Form -->
+            <div id="auth-form-container" class="space-y-4 mb-6 text-left">
+                <div>
+                    <label class="text-xs text-gray-400 font-medium ml-1">Email Address</label>
+                    <input type="email" id="auth-email" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-brand-500 outline-none transition-colors" placeholder="name@example.com">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-medium ml-1">Password</label>
+                    <input type="password" id="auth-password" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-brand-500 outline-none transition-colors" placeholder="••••••••">
+                </div>
+                
+                <button onclick="handleEmailAuth()" id="btn-email-auth" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-brand-500/20">
+                    Log In
+                </button>
+            </div>
+
+            <div class="relative mb-6">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-700"></div></div>
+                <div class="relative flex justify-center text-xs"><span class="px-2 bg-gray-800 text-gray-500">OR CONTINUE WITH</span></div>
+            </div>
+
+            <button onclick="handleGoogleSignIn()" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 group border border-gray-200">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
-                <span>Continue with Google</span>
+                <span>Google</span>
             </button>
+            
+            <p id="auth-message" class="text-xs text-center mt-4 text-red-400 hidden"></p>
         </div>
 
         <!-- CONTENT FOR ADSENSE APPROVAL (Visible on Login) -->
@@ -453,6 +499,34 @@
                     </div>
                 </div>
                 <p class="text-[10px] text-gray-700">&copy; 2024 FinTrack Personal Finance. Securely powered by Google Firebase.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Account Settings -->
+    <div id="modal-account" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white">Account Settings</h3>
+            
+            <div class="space-y-6">
+                <div class="bg-gray-800 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-lg" id="acc-initial">U</div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-white" id="acc-email">user@example.com</p>
+                        <p class="text-xs text-gray-400">Provider: <span id="acc-provider">Email</span></p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-gray-300 mb-3">Change Password</h4>
+                    <input type="password" id="acc-new-pass" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white mb-2" placeholder="New Password">
+                    <button onclick="changePassword()" class="w-full bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 rounded-lg transition-colors">Update Password</button>
+                    <p id="pass-msg" class="text-xs mt-2 text-center"></p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6 border-t border-gray-800 pt-4">
+                <button onclick="closeModal('modal-account')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Close</button>
             </div>
         </div>
     </div>
@@ -635,7 +709,7 @@
     <!-- APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         
@@ -661,19 +735,40 @@
         let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
         let unsubscribers = [];
         let spendChart = null;
+        let authMode = 'login'; // 'login' or 'signup'
 
         const initAuth = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
             }
             onAuthStateChanged(auth, u => {
-                currentUser = u;
                 if(u) {
+                    // Check email verification for Email/Password users
+                    // Google users (providerData[0].providerId === 'google.com') are automatically verified.
+                    const isGoogle = u.providerData.length > 0 && u.providerData[0].providerId === 'google.com';
+                    if (!u.emailVerified && !isGoogle) {
+                        document.getElementById('auth-message').innerText = "Please verify your email address before logging in.";
+                        document.getElementById('auth-message').classList.remove('hidden');
+                        signOut(auth);
+                        return;
+                    }
+
+                    currentUser = u;
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
+                    
                     initDataListeners(u.uid);
-                    document.getElementById('auth-section').innerHTML = `<button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400">Sign Out</button>`;
+                    
+                    // Update Auth Section with User Profile
+                    const initial = u.email ? u.email[0].toUpperCase() : 'U';
+                    document.getElementById('auth-section').innerHTML = `
+                        <button onclick="openAccountModal()" class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center text-sm font-bold border border-gray-700 hover:bg-gray-700 transition-colors">
+                            ${initial}
+                        </button>
+                        <button onclick="signOutAuth()" class="text-xs bg-gray-800 px-3 py-1.5 rounded text-gray-400 hover:text-white transition-colors border border-gray-700">Sign Out</button>
+                    `;
                 } else {
+                    currentUser = null;
                     document.getElementById('loading-screen').classList.add('hidden');
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('app-container').classList.add('hidden');
@@ -681,10 +776,113 @@
                 }
             });
         };
+
+        window.toggleAuthMode = (mode) => {
+            authMode = mode;
+            const btnLogin = document.getElementById('btn-mode-login');
+            const btnSignup = document.getElementById('btn-mode-signup');
+            const btnAction = document.getElementById('btn-email-auth');
+            
+            if (mode === 'login') {
+                btnLogin.classList.add('bg-gray-700', 'text-white');
+                btnLogin.classList.remove('text-gray-400');
+                btnSignup.classList.remove('bg-gray-700', 'text-white');
+                btnSignup.classList.add('text-gray-400');
+                btnAction.innerText = "Log In";
+            } else {
+                btnSignup.classList.add('bg-gray-700', 'text-white');
+                btnSignup.classList.remove('text-gray-400');
+                btnLogin.classList.remove('bg-gray-700', 'text-white');
+                btnLogin.classList.add('text-gray-400');
+                btnAction.innerText = "Sign Up";
+            }
+            document.getElementById('auth-message').classList.add('hidden');
+        };
+
+        window.handleEmailAuth = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            const msgEl = document.getElementById('auth-message');
+            
+            if (!email || !pass) {
+                msgEl.innerText = "Please enter email and password.";
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            msgEl.innerText = "Processing...";
+            msgEl.classList.remove('hidden', 'text-red-400');
+            msgEl.classList.add('text-gray-400');
+
+            try {
+                if (authMode === 'signup') {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                    await sendEmailVerification(userCredential.user);
+                    alert("Account created! A verification email has been sent to " + email + ". Please verify before logging in.");
+                    await signOut(auth);
+                    window.toggleAuthMode('login');
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    // onAuthStateChanged handles the rest
+                }
+            } catch (error) {
+                console.error(error);
+                let errText = error.message;
+                if (error.code === 'auth/email-already-in-use') errText = "Email already in use.";
+                if (error.code === 'auth/wrong-password') errText = "Invalid password.";
+                if (error.code === 'auth/user-not-found') errText = "User not found.";
+                if (error.code === 'auth/weak-password') errText = "Password should be at least 6 characters.";
+                msgEl.innerText = errText;
+                msgEl.classList.add('text-red-400');
+            }
+        };
+
+        window.handleGoogleSignIn = () => {
+            signInWithPopup(auth, new GoogleAuthProvider()).catch(e => {
+                console.error(e);
+                alert("Google Sign In Error: " + e.message);
+            });
+        }
+
         window.signOutAuth = () => signOut(auth);
-        document.getElementById('btn-google-login').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => {
-            console.error(e); if(window.location.hostname.includes("googleusercontent")) signInAnonymously(auth);
-        }));
+        
+        // Account Modal Logic
+        window.openAccountModal = () => {
+            if (!currentUser) return;
+            document.getElementById('acc-email').innerText = currentUser.email;
+            document.getElementById('acc-initial').innerText = currentUser.email[0].toUpperCase();
+            
+            const isGoogle = currentUser.providerData.some(p => p.providerId === 'google.com');
+            document.getElementById('acc-provider').innerText = isGoogle ? 'Google' : 'Email/Password';
+            
+            openModal('modal-account');
+        };
+
+        window.changePassword = async () => {
+            const newPass = document.getElementById('acc-new-pass').value;
+            const msgEl = document.getElementById('pass-msg');
+            
+            if (!newPass || newPass.length < 6) {
+                msgEl.innerText = "Password must be at least 6 characters.";
+                msgEl.className = "text-xs mt-2 text-center text-red-400";
+                return;
+            }
+
+            try {
+                await updatePassword(currentUser, newPass);
+                msgEl.innerText = "Password updated successfully!";
+                msgEl.className = "text-xs mt-2 text-center text-green-400";
+                document.getElementById('acc-new-pass').value = '';
+            } catch (error) {
+                if (error.code === 'auth/requires-recent-login') {
+                    msgEl.innerText = "For security, please log out and log in again to change password.";
+                } else {
+                    msgEl.innerText = "Error: " + error.message;
+                }
+                msgEl.className = "text-xs mt-2 text-center text-red-400";
+            }
+        };
+
         initAuth();
 
         function initDataListeners(uid) {

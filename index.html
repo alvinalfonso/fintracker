@@ -94,8 +94,8 @@
                         <h4 class="text-sm font-bold text-blue-100">Welcome to your Dashboard</h4>
                         <p class="text-xs text-blue-200/60 mt-1 leading-relaxed">
                             This is your real-time command center. 
-                            <strong>Net Cash</strong> accounts for bills paid. 
-                            The <strong>Active Cycle</strong> card is highlighted blue.
+                            <strong>Net Cash</strong> is continuous (All Time Income - All Time Expense).
+                            Transactions older than the previous month are archived automatically to keep this view clean.
                         </p>
                     </div>
                 </div>
@@ -108,9 +108,9 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-sack-dollar text-4xl text-green-400"></i></div>
-                    <p class="text-gray-400 text-sm font-medium">Net Cash</p>
+                    <p class="text-gray-400 text-sm font-medium">Net Cash (Running)</p>
                     <h3 class="text-2xl font-bold text-white mt-2" id="dash-net-cash">₱0.00</h3>
-                    <p class="text-[10px] text-gray-500 mt-2">Income - Expenses (This Month)</p>
+                    <p class="text-[10px] text-gray-500 mt-2">Continuous Balance</p>
                 </div>
                 <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-arrow-trend-down text-4xl text-red-400"></i></div>
@@ -455,7 +455,11 @@
                         <select id="bill-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white">
                             <option value="Housing">Housing</option>
                             <option value="Utilities">Utilities</option>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
                             <option value="Debt">Debt</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                            <option value="Savings">Savings</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
@@ -505,6 +509,8 @@
                     <h4 class="text-sm font-bold text-white mb-3">Current Payouts (Quick Action)</h4>
                     <div class="grid grid-cols-2 gap-3" id="settings-payout-status"></div>
                 </div>
+                <!-- Hidden Opening Balance field for debugging/manual fix if needed in future -->
+                <input type="hidden" id="setting-opening">
             </div>
             <div class="flex gap-3 mt-6">
                 <button onclick="closeModal('modal-settings')" class="flex-1 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800">Cancel</button>
@@ -552,7 +558,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Updated configuration from user request
         const firebaseConfig = {
             apiKey: "AIzaSyCe52ww3OoAlkhwpANeDrQ1fF2OcxOdSrc",
             authDomain: "trackerlatest.firebaseapp.com",
@@ -564,17 +569,16 @@
             measurementId: "G-RPDJ5FD5LC"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Fallback to 'trackerlatest' if the preview environment ID is not set
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'trackerlatest';
 
         let currentUser = null;
-        let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30 } };
+        // Added openingBalance to initial settings
+        let state = { bills: [], ledger: [], goals: [], receivables: [], settings: { income: 0, day1: 15, day2: 30, openingBalance: 0 } };
         let unsubscribers = [];
         let spendChart = null;
 
@@ -627,9 +631,62 @@
             unsubscribers.push(onSnapshot(path('ledger'), s => {
                 state.ledger = s.docs.map(d => ({id: d.id, ...d.data()}));
                 checkAutoDeferrals();
+                archiveOldTransactions(); // Run archive check on ledger load
                 refreshUI();
                 document.getElementById('loading-screen').classList.add('hidden');
             }));
+        }
+
+        // New Feature: Archive transactions older than "month before previous month"
+        async function archiveOldTransactions() {
+            if(!currentUser || !state.ledger.length) return;
+            
+            const today = new Date();
+            // Calculate cutoff: 1st day of the previous month.
+            // If Today is Dec (Month 11), Prev is Nov (Month 10). 
+            // We want to DELETE October (Month 9) and older.
+            // So we allow transactions >= Nov 1st.
+            const prevMonthIndex = today.getMonth() - 1; 
+            const cutoffDate = new Date(today.getFullYear(), prevMonthIndex, 1);
+            const cutoffStr = toLocalISOString(cutoffDate);
+
+            // Find old transactions
+            const oldDocs = state.ledger.filter(l => l.date < cutoffStr);
+            if(oldDocs.length === 0) return;
+
+            console.log(`Archiving ${oldDocs.length} transactions older than ${cutoffStr}...`);
+            
+            let netAdjust = 0;
+            oldDocs.forEach(l => {
+                const amt = parseFloat(l.amount) || 0;
+                if(l.type === 'income') netAdjust += amt;
+                else if(l.type !== 'defer') netAdjust -= amt;
+            });
+
+            // 1. Update Opening Balance first to maintain continuity
+            const currentOpening = state.settings.openingBalance || 0;
+            const newOpening = currentOpening + netAdjust;
+            const settingsId = state.settings.id || 'config'; // fallback if not yet loaded properly, though likely is
+            
+            // If we don't have settings ID yet, wait for next cycle or create one
+            if(!state.settings.id) {
+                // Try to find it or create
+                 try {
+                     await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'settings'), { openingBalance: newOpening, income: state.settings.income });
+                 } catch(e) { console.error("Error creating settings for archive", e); return; }
+            } else {
+                 try {
+                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', settingsId), 
+                        { openingBalance: newOpening }, { merge: true });
+                 } catch(e) { console.error("Error updating balance", e); return; }
+            }
+
+            // 2. Delete the old documents
+            oldDocs.forEach(async (d) => {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger', d.id));
+                } catch(e) { console.error("Error deleting old doc", e); }
+            });
         }
 
         async function checkAutoDeferrals() {
@@ -682,33 +739,17 @@
         function getPayoutCycles(referenceDate = new Date()) {
             const y = referenceDate.getFullYear(), m = referenceDate.getMonth(), d = referenceDate.getDate();
             let { day1, day2 } = state.settings;
-            
-            // Logic: 
-            // Cycle 1: day1 to (day2 - 1). (e.g., 10th to 24th)
-            // Cycle 2: day2 to (next month day1 - 1). (e.g., 25th to 9th)
-            
-            // Helper to handle month rollover
             const makeDate = (yy, mm, dd) => new Date(yy, mm, dd);
             
-            // Note: In JS Date(y, m, 0) is the last day of previous month.
-            // If day1 is 1, day1-1 is 0, which correctly points to previous month end.
-            
             const cycles = [
-                // Previous Month Cycle 2 (e.g. 25th Prev to 9th Curr)
                 { start: makeDate(y, m-1, day2), end: makeDate(y, m, day1-1), type: 'Period 2' },
-                // Current Month Cycle 1 (e.g. 10th to 24th)
                 { start: makeDate(y, m, day1), end: makeDate(y, m, day2-1), type: 'Period 1' },
-                // Current Month Cycle 2 (e.g. 25th to 9th Next)
                 { start: makeDate(y, m, day2), end: makeDate(y, m+1, day1-1), type: 'Period 2' },
-                // Next Month Cycle 1
                 { start: makeDate(y, m+1, day1), end: makeDate(y, m+1, day2-1), type: 'Period 1' }
             ];
 
             let activeIdx = cycles.findIndex(c => referenceDate >= c.start && referenceDate <= c.end);
-            if (activeIdx === -1) {
-                // Should not happen if coverage is complete, but fallback to Period 1 if date drift occurs
-                activeIdx = 1; 
-            }
+            if (activeIdx === -1) activeIdx = 1; 
             return { active: cycles[activeIdx], next: cycles[activeIdx + 1], prev: cycles[activeIdx - 1] || cycles[0] };
         }
 
@@ -723,7 +764,6 @@
             return { paid: paid, isFullyPaid: false }; 
         }
 
-        // Updated: Includes Receivables in Cycle Income
         function getCycleIncome(cycle) {
             const d = cycle.start;
             const day = d.getDate();
@@ -731,7 +771,6 @@
             let idx = -1;
             if (day === state.settings.day1) idx = 0; else if (day === state.settings.day2) idx = 1;
             
-            // 1. Base Salary
             let baseIncome = state.settings.income / 2;
             let isActual = false;
 
@@ -741,9 +780,6 @@
                 if (entry) { baseIncome = entry.amount; isActual = true; }
             }
 
-            // 2. Add Receivables due in this cycle
-            // Filter receivables where expectedDate is within cycle start/end
-            // AND the receivable is NOT marked as collected in ledger (or if collected, use actual amt)
             const receivablesInCycle = state.receivables.filter(r => {
                 if(!r.date) return false;
                 const rDate = new Date(r.date);
@@ -752,13 +788,9 @@
 
             let receivableSum = 0;
             receivablesInCycle.forEach(r => {
-                // Check if collected
                 const collectedEntry = state.ledger.find(l => l.refId === r.id && l.type === 'income');
-                if (collectedEntry) {
-                    receivableSum += collectedEntry.amount;
-                } else {
-                    receivableSum += r.amount;
-                }
+                if (collectedEntry) receivableSum += collectedEntry.amount;
+                else receivableSum += r.amount;
             });
 
             return { amount: baseIncome + receivableSum, isActual: isActual, base: baseIncome, receivables: receivableSum };
@@ -772,7 +804,6 @@
             renderGoals();
         }
 
-        // Helper to check if bill is completed (paid up to termination or one-time)
         function isBillCompleted(bill) {
             if (bill.frequency === 'one-time') {
                 return state.ledger.some(l => l.refId === bill.id && l.isPaid);
@@ -798,19 +829,30 @@
         window.renderDashboard = function() {
             const today = new Date();
             const monthStr = toLocalISOString(today).slice(0, 7);
-            const txs = state.ledger.filter(t => t.date.startsWith(monthStr) && t.type !== 'defer'); 
-            const inc = txs.filter(t => t.type === 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
-            const exp = txs.filter(t => t.type !== 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
             
-            document.getElementById('dash-net-cash').innerText = formatCurrency(inc - exp);
-            document.getElementById('dash-total-paid').innerText = formatCurrency(exp);
+            // For History List: Show only this month's transactions (and maybe prev month for context)
+            // But the chart usually represents "Current Status". 
+            // Let's filter visible transactions to current Month for the list.
+            const visibleTxs = state.ledger.filter(t => t.date.startsWith(monthStr) && t.type !== 'defer'); 
+            
+            // Continuous Net Cash Calculation
+            // Net Cash = Opening Balance + All Income - All Expenses (from loaded ledger)
+            // Since we archive old ledger entries into Opening Balance, summing the currently loaded ledger + Opening Balance gives the correct continuous total.
+            const totalInc = state.ledger.filter(l => l.type === 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+            const totalExp = state.ledger.filter(l => l.type !== 'income' && l.type !== 'defer').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+            const opening = state.settings.openingBalance || 0;
+            const continuousNet = opening + totalInc - totalExp;
 
-            // Pending Receivables Total
+            // Expenses Paid (This Month Only for visual tracking)
+            const monthExp = visibleTxs.filter(t => t.type !== 'income').reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+            
+            document.getElementById('dash-net-cash').innerText = formatCurrency(continuousNet);
+            document.getElementById('dash-total-paid').innerText = formatCurrency(monthExp);
+
             const pendingReceivables = state.receivables.filter(r => !state.ledger.some(l => l.refId === r.id && l.type === 'income'));
             const pendingTotal = pendingReceivables.reduce((sum, r) => sum + (r.amount || 0), 0);
             document.getElementById('dash-pending-receivables').innerText = formatCurrency(pendingTotal);
 
-            // Comparison
             const cycles = getPayoutCycles(today);
             const activeSpending = state.ledger.filter(l => l.type !== 'income' && l.type !== 'defer' && new Date(l.date) >= cycles.active.start && new Date(l.date) <= cycles.active.end).reduce((s,l)=>s+(parseFloat(l.amount)||0),0);
             const prevSpending = state.ledger.filter(l => l.type !== 'income' && l.type !== 'defer' && new Date(l.date) >= cycles.prev.start && new Date(l.date) <= cycles.prev.end).reduce((s,l)=>s+(parseFloat(l.amount)||0),0);
@@ -828,11 +870,11 @@
             });
             document.getElementById('dash-urgent-count').innerText = urgentCount;
 
-            const historyList = txs.sort((a,b) => new Date(b.date) - new Date(a.date));
+            const historyList = visibleTxs.sort((a,b) => new Date(b.date) - new Date(a.date));
             document.getElementById('dashboard-history-list').innerHTML = historyList.length ? historyList.map(renderHistoryRow).join('') : `<tr><td colspan="5" class="text-center py-4 text-gray-600">No transactions this month.</td></tr>`;
 
-            // Chart
-            renderChart(txs.filter(t => t.type !== 'income'));
+            // Chart - uses visible expenses (Current Month)
+            renderChart(visibleTxs.filter(t => t.type !== 'income'));
         }
 
         // PDF GENERATION
@@ -845,6 +887,7 @@
             doc.text("Financial Statement", 14, 20);
             doc.setFontSize(10);
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 26);
+            doc.text(`Continuous Net Cash Balance: ${document.getElementById('dash-net-cash').innerText}`, 14, 32);
 
             const renderCycleTable = (title, cycle, startY) => {
                 doc.setFontSize(14);
@@ -852,7 +895,6 @@
                 doc.setFontSize(10);
                 doc.text(`Period: ${formatDate(cycle.start)} - ${formatDate(cycle.end)}`, 14, startY + 6);
 
-                // Gather Data
                 const txs = state.ledger.filter(l => l.type !== 'defer' && new Date(l.date) >= cycle.start && new Date(l.date) <= cycle.end);
                 const income = txs.filter(t => t.type === 'income');
                 const expense = txs.filter(t => t.type !== 'income');
@@ -870,12 +912,12 @@
                     head: [['Date', 'Description', 'Type', 'Amount']],
                     body: tableData,
                     theme: 'grid',
-                    foot: [['', 'Total Net Cash', '', formatCurrency(totalInc - totalExp)]]
+                    foot: [['', 'Cycle Cash Flow', '', formatCurrency(totalInc - totalExp)]]
                 });
                 return doc.lastAutoTable.finalY + 15;
             };
 
-            let y = 35;
+            let y = 40;
             y = renderCycleTable("Previous Cycle", cycles.prev, y);
             renderCycleTable("Active Cycle", cycles.active, y);
 
@@ -886,7 +928,8 @@
             const ctx = document.getElementById('spendingChart').getContext('2d');
             const categories = {};
             expenses.forEach(e => {
-                const cat = e.category || (e.type==='bill'?'Utilities':'Other'); // Default
+                // Fixed: Use category directly, fallback to Other if missing
+                const cat = e.category || 'Other'; 
                 categories[cat] = (categories[cat] || 0) + (parseFloat(e.amount)||0);
             });
             if(spendChart) spendChart.destroy();
@@ -894,7 +937,7 @@
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(categories),
-                    datasets: [{ data: Object.values(categories), backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1'], borderWidth: 0 }]
+                    datasets: [{ data: Object.values(categories), backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1', '#ec4899', '#14b8a6'], borderWidth: 0 }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#9ca3af', boxWidth: 12 } } } }
             });
@@ -903,13 +946,11 @@
         function renderCycleCard(idPrefix, cycle) {
             document.getElementById(`${idPrefix}-dates`).innerText = `${formatDate(cycle.start)} - ${formatDate(cycle.end)}`;
             
-            // Dynamic Income Display
             const incData = getCycleIncome(cycle);
             const incEl = document.getElementById(`${idPrefix}-income`);
             incEl.innerText = formatCurrency(incData.amount);
             const incLbl = document.getElementById(`${idPrefix}-income-label`);
             if(incLbl) {
-                // If there are receivables in this cycle
                 const recText = incData.receivables > 0 ? ` (+${formatCurrency(incData.receivables)} Receivables)` : '';
                 incLbl.innerText = incData.isActual ? `Actual Income${recText}` : `Est. Income${recText}`;
             }
@@ -1074,7 +1115,7 @@
             const sort = document.getElementById('bills-sort').value;
             
             let displayBills = state.bills.filter(b => {
-                if (isBillCompleted(b)) return false; // Hide completed bills
+                if (isBillCompleted(b)) return false; 
                 const matchesSearch = b.name.toLowerCase().includes(search);
                 const matchesFilter = filter === 'all' || b.frequency === filter;
                 return matchesSearch && matchesFilter;
@@ -1101,7 +1142,6 @@
 
             listEl.innerHTML = displayBills.map(bill => {
                 const arrears = bill.arrears || 0; const total = bill.amount + arrears;
-                // One-time bills handled by isBillCompleted check above
                 const occurrences = getBillOccurrencesInCycle(bill, cycles.active);
                 let activeOccs = occurrences.length ? occurrences : getBillOccurrencesInCycle(bill, cycles.next);
                 activeOccs.sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -1126,7 +1166,6 @@
                 }); 
                 items.sort((a,b) => new Date(a.date) - new Date(b.date));
                 
-                // Calculate Dynamic Income for Forecast Card
                 const incData = getCycleIncome(cycle);
                 const totalOut = items.reduce((s,i) => s + i.amount, 0); 
                 const income = incData.amount; 
@@ -1135,7 +1174,6 @@
                 const incomeClass = incData.isActual ? "text-green-400 font-bold" : "text-gray-400";
                 const incomeLabel = incData.isActual ? "Actual Income" : "Est. Income";
                 
-                // Add note about receivables if any
                 const recNote = incData.receivables > 0 ? `<div class="text-[10px] text-teal-400 ml-1">+ ${formatCurrency(incData.receivables)} (Recv)</div>` : '';
 
                 container.innerHTML += `<div class="glass-panel rounded-2xl border border-gray-800 flex flex-col h-full relative overflow-hidden"><div class="p-4 border-b border-gray-800 bg-gray-900/50"><div class="flex justify-between items-center mb-1"><h4 class="font-bold text-white text-sm">Payout: ${payoutDateStr}</h4><span class="text-xs ${net>=0?'text-green-400':'text-red-400'}">${formatCurrency(net)}</span></div><div class="flex justify-between text-[10px] text-gray-500"><span>Range: ${formatDateShort(cycle.start)} - ${formatDateShort(cycle.end)}</span></div></div><div class="flex-1 overflow-y-auto p-4 space-y-2"><div class="flex flex-col justify-between text-xs mb-2 pb-2 border-b border-gray-800"><div class="flex justify-between w-full"><span class="${incomeClass}">${incomeLabel}</span><span class="${incomeClass}">${formatCurrency(income)}</span></div>${recNote}</div>${items.map(item => `<div class="flex items-center justify-between p-2 rounded ${item.isPaid ? 'opacity-30' : 'bg-gray-800/40'} text-xs"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-red-500"></div><div class="flex flex-col"><span class="truncate w-24">${item.name}</span><span class="text-[9px] text-gray-500">${item.counter}</span></div></div><div class="text-right"><div class="text-gray-300">${formatCurrency(item.amount)}</div><div class="text-[9px] text-gray-600">${formatDateShort(item.date)}</div></div></div>`).join('')}</div></div>`;
@@ -1169,10 +1207,19 @@
 
             try {
                 let description = document.getElementById('trans-modal-desc').innerText.replace('Confirming: ', '');
+                let category = type === 'bill' ? 'Bill' : 'Income';
+                
+                // Fixed: Fetch category from Bill object if it's a bill payment
+                if(type === 'bill') {
+                    const billObj = state.bills.find(b => b.id === refId);
+                    if(billObj && billObj.category) {
+                        category = billObj.category;
+                    }
+                }
+
                 if (type === 'bill' && paidAmount < expectedAmount) {
                     description += ` (Partial)`;
                     const diff = expectedAmount - paidAmount;
-                    // strict date check
                     if (date > targetDateStr) { 
                         if(confirm(`Due date (${targetDateStr}) has passed.\nPayment Date: ${date}\nRemaining balance: ${formatCurrency(diff)}.\n\nDefer to Arrears?`)) {
                             await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: diff }, { merge: true });
@@ -1182,7 +1229,7 @@
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bills', refId), { arrears: 0 }, { merge: true });
                 }
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'ledger'), {
-                    type, amount: paidAmount, date, targetDate: targetDateStr, refId, description, isPaid: true, category: type==='bill'?'Bill':'Income', createdAt: new Date().toISOString()
+                    type, amount: paidAmount, date, targetDate: targetDateStr, refId, description, isPaid: true, category: category, createdAt: new Date().toISOString()
                 });
                 closeModal('modal-transaction');
             } catch(e) { console.error(e); alert('Error saving'); }
@@ -1200,7 +1247,7 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href",     dataStr);
             downloadAnchorNode.setAttribute("download", "fintrack_backup.json");
-            document.body.appendChild(downloadAnchorNode); // required for firefox
+            document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         }
@@ -1281,6 +1328,7 @@
             document.getElementById('setting-income').value = state.settings.income;
             document.getElementById('setting-day1').value = state.settings.day1;
             document.getElementById('setting-day2').value = state.settings.day2;
+            document.getElementById('setting-opening').value = state.settings.openingBalance || 0;
             // Render Quick Actions
             const today = new Date();
             const monthStr = today.toISOString().slice(0, 7);
@@ -1304,7 +1352,8 @@
             const d = {
                 income: parseFloat(document.getElementById('setting-income').value)||0,
                 day1: parseInt(document.getElementById('setting-day1').value)||15,
-                day2: parseInt(document.getElementById('setting-day2').value)||30
+                day2: parseInt(document.getElementById('setting-day2').value)||30,
+                openingBalance: parseFloat(document.getElementById('setting-opening').value)||0
             };
             const c = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
             if(state.settings.id) await setDoc(doc(c, state.settings.id), d, {merge:true}); else await addDoc(c, d);
